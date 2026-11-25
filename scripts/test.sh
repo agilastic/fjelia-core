@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Analyze and test fjelia_core, fjelia_data, fjelia_sync and fjelia_views with the Dart SDK of the installed Flutter.
+# Analyze and test fjelia_core, fjelia_data, fjelia_sync, fjelia_views and fjelia_mcp with the Dart SDK of the installed Flutter.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 case "${1:-}" in
   -h|--help)
-    echo "Usage: scripts/test.sh  (pub get, analyze and test fjelia_core, fjelia_data, fjelia_sync and fjelia_views)"
+    echo "Usage: scripts/test.sh  (pub get, analyze and test fjelia_core, fjelia_data, fjelia_sync, fjelia_views and fjelia_mcp)"
     exit 0 ;;
   "") ;;
   *) echo "Usage: scripts/test.sh" >&2; exit 2 ;;
@@ -21,8 +21,9 @@ dart="$(dirname "$flutter_bin")/cache/dart-sdk/bin/dart"
 [ -x "$dart" ] || { echo "Run flutter --version once to download its Dart SDK." >&2; exit 1; }
 "$dart" --version
 "$dart" pub get
-"$dart" analyze --fatal-warnings packages/fjelia_core packages/fjelia_data packages/fjelia_sync packages/fjelia_views
+"$dart" analyze --fatal-warnings packages/fjelia_core packages/fjelia_data packages/fjelia_sync packages/fjelia_views packages/fjelia_mcp
 (cd packages/fjelia_core && "$dart" test)
 (cd packages/fjelia_data && "$dart" test)
 (cd packages/fjelia_sync && "$dart" test)
 (cd packages/fjelia_views && "$dart" test)
+(cd packages/fjelia_mcp && "$dart" test)

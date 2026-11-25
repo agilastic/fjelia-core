@@ -1,0 +1,21 @@
+name: fjelia_mcp
+description: Fjelia's tools for AI assistants over the Model Context Protocol (MCP), independent of the transport; the apps serve them.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  drift: ^2.35.2
+  fjelia_core:
+    path: ../fjelia_core
+  fjelia_data:
+    path: ../fjelia_data
+  fjelia_views:
+    path: ../fjelia_views
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0

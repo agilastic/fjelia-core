@@ -10,3 +10,4 @@ workspace:
   - packages/fjelia_data
   - packages/fjelia_sync
   - packages/fjelia_views
+  - packages/fjelia_mcp
