@@ -60,6 +60,8 @@ abstract interface class ActivityView {
   double? get plannedDistanceMeters;
   String? get plannedStepsJson;
   String? get athleteNote;
+  double? get calories;
+  double? get maxSpeedMps;
 }
 
 /// A race or event goal.
