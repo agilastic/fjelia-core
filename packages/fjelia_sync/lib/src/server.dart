@@ -189,7 +189,13 @@ class SyncServer {
         'seq': peer.receivedSeq,
       });
     }
+    // A new log from the phone resends what it has; what it dropped would
+    // stay here. The first release's desktop mirrors one phone, so it
+    // starts its copy again.
+    final restarted =
+        peer.peerLogEpoch != null && epoch != peer.peerLogEpoch && from == 0;
     await db.transaction(() async {
+      if (restarted) await db.clearSyncedData();
       await db.applySyncChanges(changes, fromDevice: peer.deviceId);
       await db.setSyncPeerCursor(
         peer.deviceId,

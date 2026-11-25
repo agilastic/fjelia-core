@@ -155,6 +155,27 @@ void main() {
     expect(await desktopRuns(), 2);
   });
 
+  test('a phone that starts a new log leaves nothing stale behind', () async {
+    await run('a1');
+    await run('a2');
+    final desktop = await phone.pair(await offer());
+    await phone.push(desktop);
+    // Delete all data: a new database, a new log, one new run.
+    await phoneDb.close();
+    phoneDb = AppDatabase(NativeDatabase.memory());
+    phone = SyncClient(
+      db: phoneDb,
+      identity: phoneIdentity,
+      name: 'iPhone',
+      secrets: phoneSecrets,
+    );
+    await phoneDb.saveSyncPeer(desktop);
+    await run('b1');
+    expect(await phone.push(desktop), 1);
+    final runs = await desktopDb.select(desktopDb.activityRecords).get();
+    expect(runs.map((r) => r.activityId), ['b1']);
+  });
+
   test('unpairing ends it on both devices', () async {
     final desktop = await phone.pair(await offer());
     await phone.unpair(desktop);

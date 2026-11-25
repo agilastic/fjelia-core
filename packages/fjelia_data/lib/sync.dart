@@ -380,6 +380,20 @@ extension SyncStore on AppDatabase {
     markTablesUpdated(allTables);
   });
 
+  /// Removes every synced record, without logging it. A desktop that
+  /// mirrors one phone does this when the phone starts a new log, which
+  /// resends what it has but cannot name what it dropped.
+  Future<void> clearSyncedData() => transaction(() async {
+    await customStatement('UPDATE sync_state SET applying = 1');
+    for (final t in syncTables.reversed) {
+      await customStatement('DELETE FROM "${t.name}"');
+    }
+    await customStatement('DELETE FROM sync_row_ids');
+    await customStatement('DELETE FROM sync_changes');
+    await customStatement('UPDATE sync_state SET applying = 0');
+    markTablesUpdated(allTables);
+  });
+
   Future<int?> _rowIdFor(String table, Object? syncId) async =>
       (await customSelect(
         'SELECT row_id FROM sync_row_ids '
