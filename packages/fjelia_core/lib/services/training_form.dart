@@ -37,6 +37,35 @@ class FormPoint {
   double get tsb => ctl - atl;
 }
 
+/// How the athlete's form (TSB) reads, from fresh to very fatigued.
+enum FormStatus {
+  noHistory,
+  fresh,
+  optimal,
+  neutral,
+  tired,
+  veryFatigued;
+
+  static FormStatus of(double? tsb) => switch (tsb) {
+    null => noHistory,
+    > 15 => fresh,
+    > 5 => optimal,
+    > -10 => neutral,
+    > -20 => tired,
+    _ => veryFatigued,
+  };
+
+  /// Whether the form is good to go (green), tiring (red) or in between.
+  FormTone get tone => switch (this) {
+    noHistory => FormTone.none,
+    fresh || optimal => FormTone.good,
+    neutral => FormTone.caution,
+    tired || veryFatigued => FormTone.strained,
+  };
+}
+
+enum FormTone { none, good, caution, strained }
+
 /// Initialize from the earliest usable load record, then process every local
 /// calendar day through [through]. The visible chart range never resets the
 /// calculation. Keep the existing smoothing coefficients used by Fjelia.

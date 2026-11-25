@@ -412,15 +412,21 @@ class PlanWorkoutBuilder {
     // Zone 1 for a runner is the lower half of zone 2 (see easyRunZ2). A
     // warm-up, cool-down or rest step stays as planned: walking or jogging
     // there is what those steps are for.
+    // The step remembers it, so resolving it again with other zones (when the
+    // workout is sent, or the zones change) keeps the lower half of zone 2.
     final stepKey = (out['stepType'] as Map?)?['stepTypeKey'];
     final easyRun =
         fitness.easyRunZ2 &&
-        zone == 1 &&
-        stepKey != 'warmup' &&
-        stepKey != 'cooldown' &&
-        stepKey != 'recovery' &&
-        stepKey != 'rest';
-    if (easyRun) zone = 2;
+        (out['easyRun'] == true ||
+            zone == 1 &&
+                stepKey != 'warmup' &&
+                stepKey != 'cooldown' &&
+                stepKey != 'recovery' &&
+                stepKey != 'rest');
+    if (easyRun) {
+      zone = 2;
+      out['easyRun'] = true;
+    }
     if (zone != null && zone >= 1 && zone <= 5) out['zoneNumber'] = zone;
 
     final key = (out['targetType'] as Map?)?['workoutTargetTypeKey'];

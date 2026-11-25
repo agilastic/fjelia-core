@@ -8,6 +8,7 @@ desktop app (`fjelia-desktop`) and the backend worker (`fjelia-service`).
 | `packages/fjelia_core` | Domain models and algorithms: zones, load and form, HRV, ECG, sleep staging, FIT/GPX/TCX parsing, scores, planning, AI Coach context |
 | `packages/fjelia_data` | The Drift database: schema, migrations and queries, shared by the mobile and desktop apps (opening it is each app's part) |
 | `packages/fjelia_sync` | Nearby sync: device identity, pairing by QR code and the HTTPS transport between an athlete's devices (uses `dart:io`) |
+| `packages/fjelia_views` | What each screen shows and when: reads `fjelia_data`, computes with `fjelia_core`, returns view models both apps render (they decide only how and where, and the wording) |
 | `packages/fjelia_service_api` | Public interfaces of the optional private service package; the apps' public stub and the private implementation both build on it |
 
 `fjelia_core` depends on the Dart SDK and pure-Dart packages only.

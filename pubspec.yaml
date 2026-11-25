@@ -9,3 +9,4 @@ workspace:
   - packages/fjelia_service_api
   - packages/fjelia_data
   - packages/fjelia_sync
+  - packages/fjelia_views

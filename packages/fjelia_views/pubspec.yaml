@@ -1,0 +1,19 @@
+name: fjelia_views
+description: What each Fjelia screen shows, read from the database and computed with fjelia_core. The mobile and desktop apps render it.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  drift: ^2.35.2
+  fjelia_core:
+    path: ../fjelia_core
+  fjelia_data:
+    path: ../fjelia_data
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
