@@ -12,7 +12,12 @@ abstract final class RacePrediction {
     List<({DateTime date, double vo2max})> vo2max, {
     required DateTime now,
   }) {
-    final short = runs.where((a) => (a.distanceMeters ?? 0) <= 10000.0);
+    // A list literal, not runs.where: a caller's List<ActivityRecord> would
+    // make reduce demand a closure over records and fail at runtime.
+    final short = [
+      for (final a in runs)
+        if ((a.distanceMeters ?? 0) <= 10000.0) a,
+    ];
     if (short.isEmpty) return null;
     final best = short.reduce((a, b) {
       final paceA = a.durationSeconds / a.distanceMeters!;

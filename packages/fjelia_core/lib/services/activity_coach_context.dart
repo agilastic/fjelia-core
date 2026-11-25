@@ -296,7 +296,7 @@ abstract final class ActivityCoachContext {
     return [
       'Min:${_int(a.durationSeconds / 60)}',
       if (km > 0) 'Km:${_dec(km)}',
-      if (km > 0) _speedPart(_sport(a.type), km, moving).substring(1),
+      if (km > 0) _speedPart(_sport(a.type), km, moving).replaceFirst(',', ''),
       if (a.avgHeartRate != null) 'AvgHR:${_int(a.avgHeartRate)}',
       if (a.maxHeartRate != null) 'MaxHR:${_int(a.maxHeartRate)}',
       'Load:${_int(effectiveLoad(a))}',
