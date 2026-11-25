@@ -1,0 +1,19 @@
+name: fjelia_data
+description: The Fjelia database (Drift schema, migrations and queries), shared by the mobile and desktop apps.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  drift: ^2.35.2
+  fjelia_core:
+    path: ../fjelia_core
+
+dev_dependencies:
+  build_runner: ^2.16.2
+  drift_dev: ^2.35.1
+  lints: ^6.0.0
+  test: ^1.26.0
