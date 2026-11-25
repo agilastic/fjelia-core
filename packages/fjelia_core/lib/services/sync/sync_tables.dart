@@ -184,6 +184,7 @@ const syncTables = <SyncTable>[
   // Equipment: the athlete keeps it on any device.
   SyncTable('gear', _a, key: ['id'], merge: _edited),
   SyncTable('activity_gear', _a, key: ['activity_id'], merge: _edited),
+  SyncTable('lab_tests', _h, key: ['id'], merge: _edited),
 ];
 
 /// Tables that stay on the device that wrote them: raw sensor streams,

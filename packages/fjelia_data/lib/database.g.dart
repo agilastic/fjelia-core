@@ -52090,6 +52090,412 @@ class ActivityGearCompanion extends UpdateCompanion<ActivityGearRow> {
   }
 }
 
+class $LabTestsTable extends LabTests
+    with TableInfo<$LabTestsTable, LabTestRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LabTestsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sportMeta = const VerificationMeta('sport');
+  @override
+  late final GeneratedColumn<String> sport = GeneratedColumn<String>(
+    'sport',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stepsJsonMeta = const VerificationMeta(
+    'stepsJson',
+  );
+  @override
+  late final GeneratedColumn<String> stepsJson = GeneratedColumn<String>(
+    'steps_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    date,
+    sport,
+    stepsJson,
+    note,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'lab_tests';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LabTestRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('sport')) {
+      context.handle(
+        _sportMeta,
+        sport.isAcceptableOrUnknown(data['sport']!, _sportMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sportMeta);
+    }
+    if (data.containsKey('steps_json')) {
+      context.handle(
+        _stepsJsonMeta,
+        stepsJson.isAcceptableOrUnknown(data['steps_json']!, _stepsJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_stepsJsonMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LabTestRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LabTestRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      sport: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sport'],
+      )!,
+      stepsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}steps_json'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LabTestsTable createAlias(String alias) {
+    return $LabTestsTable(attachedDatabase, alias);
+  }
+}
+
+class LabTestRow extends DataClass implements Insertable<LabTestRow> {
+  final String id;
+  final DateTime date;
+
+  /// `cycling` (intensity in watts) or `running` (metres per second).
+  final String sport;
+  final String stepsJson;
+
+  /// Where it was done, or anything else worth keeping.
+  final String? note;
+  final DateTime createdAt;
+  const LabTestRow({
+    required this.id,
+    required this.date,
+    required this.sport,
+    required this.stepsJson,
+    this.note,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['date'] = Variable<DateTime>(date);
+    map['sport'] = Variable<String>(sport);
+    map['steps_json'] = Variable<String>(stepsJson);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  LabTestsCompanion toCompanion(bool nullToAbsent) {
+    return LabTestsCompanion(
+      id: Value(id),
+      date: Value(date),
+      sport: Value(sport),
+      stepsJson: Value(stepsJson),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory LabTestRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LabTestRow(
+      id: serializer.fromJson<String>(json['id']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      sport: serializer.fromJson<String>(json['sport']),
+      stepsJson: serializer.fromJson<String>(json['stepsJson']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'date': serializer.toJson<DateTime>(date),
+      'sport': serializer.toJson<String>(sport),
+      'stepsJson': serializer.toJson<String>(stepsJson),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  LabTestRow copyWith({
+    String? id,
+    DateTime? date,
+    String? sport,
+    String? stepsJson,
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+  }) => LabTestRow(
+    id: id ?? this.id,
+    date: date ?? this.date,
+    sport: sport ?? this.sport,
+    stepsJson: stepsJson ?? this.stepsJson,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  LabTestRow copyWithCompanion(LabTestsCompanion data) {
+    return LabTestRow(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      sport: data.sport.present ? data.sport.value : this.sport,
+      stepsJson: data.stepsJson.present ? data.stepsJson.value : this.stepsJson,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LabTestRow(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('sport: $sport, ')
+          ..write('stepsJson: $stepsJson, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, date, sport, stepsJson, note, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LabTestRow &&
+          other.id == this.id &&
+          other.date == this.date &&
+          other.sport == this.sport &&
+          other.stepsJson == this.stepsJson &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt);
+}
+
+class LabTestsCompanion extends UpdateCompanion<LabTestRow> {
+  final Value<String> id;
+  final Value<DateTime> date;
+  final Value<String> sport;
+  final Value<String> stepsJson;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const LabTestsCompanion({
+    this.id = const Value.absent(),
+    this.date = const Value.absent(),
+    this.sport = const Value.absent(),
+    this.stepsJson = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LabTestsCompanion.insert({
+    required String id,
+    required DateTime date,
+    required String sport,
+    required String stepsJson,
+    this.note = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       date = Value(date),
+       sport = Value(sport),
+       stepsJson = Value(stepsJson),
+       createdAt = Value(createdAt);
+  static Insertable<LabTestRow> custom({
+    Expression<String>? id,
+    Expression<DateTime>? date,
+    Expression<String>? sport,
+    Expression<String>? stepsJson,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (date != null) 'date': date,
+      if (sport != null) 'sport': sport,
+      if (stepsJson != null) 'steps_json': stepsJson,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LabTestsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? date,
+    Value<String>? sport,
+    Value<String>? stepsJson,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return LabTestsCompanion(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      sport: sport ?? this.sport,
+      stepsJson: stepsJson ?? this.stepsJson,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (sport.present) {
+      map['sport'] = Variable<String>(sport.value);
+    }
+    if (stepsJson.present) {
+      map['steps_json'] = Variable<String>(stepsJson.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LabTestsCompanion(')
+          ..write('id: $id, ')
+          ..write('date: $date, ')
+          ..write('sport: $sport, ')
+          ..write('stepsJson: $stepsJson, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CoachMemoriesTable extends CoachMemories
     with TableInfo<$CoachMemoriesTable, CoachMemory> {
   @override
@@ -52986,6 +53392,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MediaItemsTable mediaItems = $MediaItemsTable(this);
   late final $GearTable gear = $GearTable(this);
   late final $ActivityGearTable activityGear = $ActivityGearTable(this);
+  late final $LabTestsTable labTests = $LabTestsTable(this);
   late final $CoachMemoriesTable coachMemories = $CoachMemoriesTable(this);
   late final $ProReportsTable proReports = $ProReportsTable(this);
   @override
@@ -53065,6 +53472,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     mediaItems,
     gear,
     activityGear,
+    labTests,
     coachMemories,
     proReports,
   ];
@@ -78679,6 +79087,229 @@ typedef $$ActivityGearTableProcessedTableManager =
       ActivityGearRow,
       PrefetchHooks Function()
     >;
+typedef $$LabTestsTableCreateCompanionBuilder = LabTestsCompanion Function({
+  required String id,
+  required DateTime date,
+  required String sport,
+  required String stepsJson,
+  Value<String?> note,
+  required DateTime createdAt,
+  Value<int> rowid,
+});
+typedef $$LabTestsTableUpdateCompanionBuilder = LabTestsCompanion Function({
+  Value<String> id,
+  Value<DateTime> date,
+  Value<String> sport,
+  Value<String> stepsJson,
+  Value<String?> note,
+  Value<DateTime> createdAt,
+  Value<int> rowid,
+});
+
+class $$LabTestsTableFilterComposer
+    extends Composer<_$AppDatabase, $LabTestsTable> {
+  $$LabTestsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sport => $composableBuilder(
+    column: $table.sport,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get stepsJson => $composableBuilder(
+    column: $table.stepsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LabTestsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LabTestsTable> {
+  $$LabTestsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sport => $composableBuilder(
+    column: $table.sport,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get stepsJson => $composableBuilder(
+    column: $table.stepsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LabTestsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LabTestsTable> {
+  $$LabTestsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get sport =>
+      $composableBuilder(column: $table.sport, builder: (column) => column);
+
+  GeneratedColumn<String> get stepsJson =>
+      $composableBuilder(column: $table.stepsJson, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$LabTestsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LabTestsTable,
+          LabTestRow,
+          $$LabTestsTableFilterComposer,
+          $$LabTestsTableOrderingComposer,
+          $$LabTestsTableAnnotationComposer,
+          $$LabTestsTableCreateCompanionBuilder,
+          $$LabTestsTableUpdateCompanionBuilder,
+          (
+            LabTestRow,
+            BaseReferences<_$AppDatabase, $LabTestsTable, LabTestRow>,
+          ),
+          LabTestRow,
+          PrefetchHooks Function()
+        > {
+  $$LabTestsTableTableManager(_$AppDatabase db, $LabTestsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LabTestsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LabTestsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LabTestsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String> sport = const Value.absent(),
+                Value<String> stepsJson = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LabTestsCompanion(
+                id: id,
+                date: date,
+                sport: sport,
+                stepsJson: stepsJson,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime date,
+                required String sport,
+                required String stepsJson,
+                Value<String?> note = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => LabTestsCompanion.insert(
+                id: id,
+                date: date,
+                sport: sport,
+                stepsJson: stepsJson,
+                note: note,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$LabTestsTable, LabTestRow>(table),
+                  BaseReferences<_$AppDatabase, $LabTestsTable, LabTestRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LabTestsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LabTestsTable,
+      LabTestRow,
+      $$LabTestsTableFilterComposer,
+      $$LabTestsTableOrderingComposer,
+      $$LabTestsTableAnnotationComposer,
+      $$LabTestsTableCreateCompanionBuilder,
+      $$LabTestsTableUpdateCompanionBuilder,
+      (LabTestRow, BaseReferences<_$AppDatabase, $LabTestsTable, LabTestRow>),
+      LabTestRow,
+      PrefetchHooks Function()
+    >;
 typedef $$CoachMemoriesTableCreateCompanionBuilder =
     CoachMemoriesCompanion Function({
       required String id,
@@ -79294,6 +79925,8 @@ class $AppDatabaseManager {
   $$GearTableTableManager get gear => $$GearTableTableManager(_db, _db.gear);
   $$ActivityGearTableTableManager get activityGear =>
       $$ActivityGearTableTableManager(_db, _db.activityGear);
+  $$LabTestsTableTableManager get labTests =>
+      $$LabTestsTableTableManager(_db, _db.labTests);
   $$CoachMemoriesTableTableManager get coachMemories =>
       $$CoachMemoriesTableTableManager(_db, _db.coachMemories);
   $$ProReportsTableTableManager get proReports =>

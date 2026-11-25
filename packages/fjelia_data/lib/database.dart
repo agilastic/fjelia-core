@@ -1580,6 +1580,25 @@ class Gear extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A lactate step test: the steps as measured (intensity, heart rate,
+/// lactate), so the thresholds can be worked out again with better rules.
+@DataClassName('LabTestRow')
+class LabTests extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get date => dateTime()();
+
+  /// `cycling` (intensity in watts) or `running` (metres per second).
+  TextColumn get sport => text()();
+  TextColumn get stepsJson => text()();
+
+  /// Where it was done, or anything else worth keeping.
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// The equipment an activity was done with, when the athlete said.
 @DataClassName('ActivityGearRow')
 class ActivityGear extends Table {
@@ -1703,6 +1722,7 @@ List<BpMeasurement> _validBpRows(List<BpMeasurement> rows) =>
     MediaItems,
     Gear,
     ActivityGear,
+    LabTests,
     CoachMemories,
     ProReports,
   ],
@@ -1717,7 +1737,7 @@ class AppDatabase extends _$AppDatabase {
       defaultSourcePriorities[group.name]!;
 
   @override
-  int get schemaVersion => 75;
+  int get schemaVersion => 76;
 
   Future<void> saveHeartRateSamples(List<TimedHeartRate> samples) async {
     if (samples.isEmpty) return;
@@ -3747,6 +3767,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(gear);
         await m.createTable(activityGear);
       }
+      if (from < 76) await m.createTable(labTests);
     },
   );
 
