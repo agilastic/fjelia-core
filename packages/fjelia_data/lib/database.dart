@@ -11,6 +11,8 @@ import 'package:fjelia_core/services/activity_kind.dart' show activityKind;
 import 'package:fjelia_core/services/source_priority.dart'
     show SourceGroup, defaultSourcePriorities, shouldOverwrite;
 
+import 'sync.dart';
+
 part 'database.g.dart';
 part 'summary_metrics.dart';
 
@@ -34,7 +36,8 @@ class HeartRateSamples extends Table {
 }
 
 /// Lets fjelia_core read this row through [BpMeasurementView].
-abstract class BpMeasurementBase extends DataClass implements BpMeasurementView {}
+abstract class BpMeasurementBase extends DataClass
+    implements BpMeasurementView {}
 
 @DataClassName('BpMeasurement', extending: BpMeasurementBase)
 class BpMeasurements extends Table {
@@ -110,7 +113,8 @@ class SleepRecords extends Table {
 }
 
 /// Lets fjelia_core read this row through [WellnessDayView].
-abstract class WellnessRecordBase extends DataClass implements WellnessDayView {}
+abstract class WellnessRecordBase extends DataClass
+    implements WellnessDayView {}
 
 @DataClassName('WellnessRecord', extending: WellnessRecordBase)
 class WellnessRecords extends Table {
@@ -135,7 +139,8 @@ class WellnessRecords extends Table {
 }
 
 /// Lets fjelia_core read this row through [BodyCompositionView].
-abstract class RenphoRecordBase extends DataClass implements BodyCompositionView {}
+abstract class RenphoRecordBase extends DataClass
+    implements BodyCompositionView {}
 
 @DataClassName('RenphoRecord', extending: RenphoRecordBase)
 class RenphoRecords extends Table {
@@ -521,7 +526,8 @@ class HrvNativeCleanups extends Table {
 }
 
 /// Lets fjelia_core read this row through [GripStrengthView].
-abstract class GripStrengthRecordBase extends DataClass implements GripStrengthView {}
+abstract class GripStrengthRecordBase extends DataClass
+    implements GripStrengthView {}
 
 @DataClassName('GripStrengthRecord', extending: GripStrengthRecordBase)
 class GripStrengthRecords extends Table {
@@ -676,7 +682,8 @@ class OcrMeasurements extends Table {
 }
 
 /// Lets fjelia_core read this row through [ScheduledWorkoutView].
-abstract class ScheduledWorkoutRecordBase extends DataClass implements ScheduledWorkoutView {}
+abstract class ScheduledWorkoutRecordBase extends DataClass
+    implements ScheduledWorkoutView {}
 
 @DataClassName('ScheduledWorkoutRecord', extending: ScheduledWorkoutRecordBase)
 class ScheduledWorkoutRecords extends Table {
@@ -729,7 +736,8 @@ class HeatWorkoutContexts extends Table {
 }
 
 /// Lets fjelia_core read this row through [HeatStateView].
-abstract class HeatDailyStateRecordBase extends DataClass implements HeatStateView {}
+abstract class HeatDailyStateRecordBase extends DataClass
+    implements HeatStateView {}
 
 @DataClassName('HeatDailyStateRecord', extending: HeatDailyStateRecordBase)
 class HeatDailyStateRecords extends Table {
@@ -745,7 +753,8 @@ class HeatDailyStateRecords extends Table {
 }
 
 /// Lets fjelia_core read this row through [ThresholdTestView].
-abstract class ThresholdRecordBase extends DataClass implements ThresholdTestView {}
+abstract class ThresholdRecordBase extends DataClass
+    implements ThresholdTestView {}
 
 @DataClassName('ThresholdRecord', extending: ThresholdRecordBase)
 class ThresholdRecords extends Table {
@@ -1040,7 +1049,8 @@ class SessionXp extends Table {
 }
 
 /// Lets fjelia_core read this row through [ReadinessRecordView].
-abstract class DailyReadinessRecordBase extends DataClass implements ReadinessRecordView {}
+abstract class DailyReadinessRecordBase extends DataClass
+    implements ReadinessRecordView {}
 
 @DataClassName('DailyReadinessRecord', extending: DailyReadinessRecordBase)
 class DailyReadinessRecords extends Table {
@@ -2223,9 +2233,8 @@ class AppDatabase extends _$AppDatabase {
   });
 
   /// Absences, the latest first.
-  Future<List<Absence>> absenceList() => (select(
-    absences,
-  )..orderBy([(t) => OrderingTerm.desc(t.startDay)])).get();
+  Future<List<Absence>> absenceList() =>
+      (select(absences)..orderBy([(t) => OrderingTerm.desc(t.startDay)])).get();
 
   /// Absences that touch [from] .. [to] (days, both included).
   Future<List<Absence>> absencesBetween(DateTime from, DateTime to) =>
@@ -2754,17 +2763,15 @@ class AppDatabase extends _$AppDatabase {
   // ── Heat acclimation / weather ───────────────────────────────────────────
 
   Future<int> upsertHeatDailyState(HeatDailyStateRecordsCompanion entry) =>
-      into(
-        heatDailyStateRecords,
-      ).insert(entry, mode: InsertMode.insertOrReplace);
+      into(heatDailyStateRecords)
+          .insert(entry, mode: InsertMode.insertOrReplace);
 
   Future<int> upsertHeatWorkoutContext(HeatWorkoutContextsCompanion entry) =>
       into(heatWorkoutContexts).insert(entry, mode: InsertMode.insertOrReplace);
 
   Future<int> upsertWeatherSnapshot(WeatherSnapshotRecordsCompanion entry) =>
-      into(
-        weatherSnapshotRecords,
-      ).insert(entry, mode: InsertMode.insertOrReplace);
+      into(weatherSnapshotRecords)
+          .insert(entry, mode: InsertMode.insertOrReplace);
 
   /// Cached weather within ~1 km and ±30 min of [at].
   Future<WeatherSnapshotRecord?> getWeatherSnapshotNear(
@@ -3046,6 +3053,7 @@ class AppDatabase extends _$AppDatabase {
         'BEGIN $keepSport',
       );
       await _recordHrZoneDefinitions();
+      await installSync();
     },
     onUpgrade: (m, from, to) async {
       if (from < 62) {

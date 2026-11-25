@@ -41,6 +41,17 @@ dependency_overrides:
 After a schema change, regenerate in `packages/fjelia_data` with
 `dart run build_runner build --delete-conflicting-outputs` (Flutter's Dart).
 
+## Sync between devices
+
+`fjelia_core/services/sync/sync_tables.dart` names every table once: synced
+(with its category, key and merge rule), kept on the device, or held back for
+the coach phase. A new table fails `fjelia_data`'s sync test until it is
+listed there. `fjelia_data/sync.dart` keeps the change log: triggers record
+the newest change of each synced record, a peer asks for everything after
+the last `seq` it received, and received changes are applied without being
+logged as the receiving device's own. Rows without a natural key get a
+permanent sync id, because their integer ids are numbered per device.
+
 ## Commands
 
 Use the Dart SDK bundled with the app's Flutter version (3.47.7, Dart 3.13.5):
