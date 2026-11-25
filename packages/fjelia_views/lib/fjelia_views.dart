@@ -5,6 +5,8 @@
 library;
 
 export 'src/activities.dart';
+export 'src/analysis.dart';
 export 'src/calendar.dart';
+export 'src/sport_stats.dart';
 export 'src/today.dart';
 export 'src/training_load.dart';

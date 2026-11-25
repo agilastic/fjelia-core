@@ -109,3 +109,25 @@ List<FormPoint> buildTrainingFormSeries({
   }
   return points;
 }
+
+/// Fitness, fatigue and form for the [days] after [from]'s day: the
+/// planned load per day from [planned], rest on the others. Same smoothing
+/// as [buildTrainingFormSeries], so the forecast continues the chart.
+List<FormPoint> projectTrainingForm(
+  FormPoint from, {
+  Map<DateTime, double> planned = const {},
+  int days = 45,
+}) {
+  final plan = {for (final e in planned.entries) _day(e.key): e.value};
+  var ctl = from.ctl, atl = from.atl;
+  return [
+    for (var i = 1; i <= days; i++)
+      () {
+        final d = DateTime(from.date.year, from.date.month, from.date.day + i);
+        final load = plan[d] ?? 0;
+        ctl += (load - ctl) * (2 / 43);
+        atl += (load - atl) * 0.25;
+        return FormPoint(date: d, ctl: ctl, atl: atl, load: load);
+      }(),
+  ];
+}
