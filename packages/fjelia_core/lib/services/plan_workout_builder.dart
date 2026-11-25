@@ -14,18 +14,6 @@ import 'workout_semantics.dart';
 /// Builds the workouts of a plan: durations, steps, templates and the
 /// description text a watch shows. Holds no data of its own.
 class PlanWorkoutBuilder {
-  PlanWorkoutBuilder({bool Function(String sport, bool indoor)? usesPower})
-    : _usesPower = usesPower ?? ((_, _) => false);
-
-  /// Whether a session of a sport is steered by power on this athlete's
-  /// devices.
-  final bool Function(String sport, bool indoor) _usesPower;
-
-  static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
-
-  static DateTime _addDays(DateTime d, int days) =>
-      DateTime(d.year, d.month, d.day + days);
-
   /// 0.7–1.1 multiplier from form (TSB), HRV ratio and sleep.
   double readinessFactor(PlanAthleteFitnessSnapshot s) {
     final form = ((s.tsb + 20) / 40).clamp(0.0, 1.0);

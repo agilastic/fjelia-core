@@ -4,7 +4,6 @@ import 'dart:math' as math;
 import '../models/plan_views.dart';
 import '../models/race_profile.dart';
 import '../utils/log.dart';
-import '../utils/week.dart';
 import 'plan_rules.dart';
 import 'plan_workout_builder.dart';
 import 'ramp_test.dart';

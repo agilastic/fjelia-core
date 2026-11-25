@@ -1,6 +1,5 @@
 import '../../models/hrv_pair_assessment.dart';
 import '../../models/hrv_training_episode.dart';
-import 'hrv_pairing_service.dart';
 
 /// Everything the card, the chart, the reminder and the AI read, built from
 /// the same facts in one pass.
