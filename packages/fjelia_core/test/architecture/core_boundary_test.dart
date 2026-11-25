@@ -9,6 +9,7 @@ const _allowedPackages = {
   'fjelia_service_api',
   'collection',
   'crypto',
+  'equatable',
   'fit_sdk',
   'intl',
   'meta',
