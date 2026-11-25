@@ -1,6 +1,8 @@
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:fjelia_core/models/workout_draft.dart';
+import 'package:fjelia_core/services/plan_workout_builder.dart';
 import 'package:fjelia_core/services/season/goal_set.dart';
 import 'package:fjelia_core/services/season/season_goal.dart';
 import 'package:fjelia_core/utils/week.dart';
@@ -322,6 +324,142 @@ class PlanEdits {
       }
     }
     return copies;
+  }
+
+  /// Replaces the steps of [session] with [draft]; its duration, main
+  /// zone and load follow from the steps as the plan counts them.
+  Future<TrainingSession> setSteps(
+    TrainingSession session,
+    WorkoutDraft draft,
+  ) async {
+    if (session.status == 'completed') throw const DoneRefused();
+    final semantics = draft.semantics(sport: session.sport);
+    await (db.update(
+      db.trainingSessions,
+    )..where((t) => t.id.equals(session.id))).write(
+      TrainingSessionsCompanion(
+        stepsJson: Value(draft.toStepsJson()),
+        plannedDurationMin: Value(semantics.totalMinutes),
+        plannedTrimp: Value(semantics.legacyLoad.round()),
+        primaryZone: Value(semantics.dominantZone ?? session.primaryZone),
+        dateModified: Value(DateTime.now()),
+        modifiedBy: const Value('athlete'),
+      ),
+    );
+    return this.session(session.id);
+  }
+
+  /// A new workout of [sport] on [day], built from [draft]. It belongs to
+  /// the active plan when there is one.
+  Future<TrainingSession> create(
+    DateTime day, {
+    required String sport,
+    required String title,
+    required WorkoutDraft draft,
+  }) async {
+    final target = _day(day);
+    await checkDay(target);
+    final plan =
+        await (db.select(db.trainingPlans)
+              ..where(
+                (p) => p.athleteId.equals('self') & p.status.equals('active'),
+              )
+              ..orderBy([(p) => OrderingTerm.desc(p.generatedAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    final semantics = draft.semantics(sport: sport);
+    final zone = semantics.dominantZone ?? 2;
+    final id = _newId();
+    await db
+        .into(db.trainingSessions)
+        .insert(
+          TrainingSessionsCompanion.insert(
+            id: id,
+            planId: plan?.id ?? 'athlete',
+            athleteId: 'self',
+            sessionDate: target,
+            sessionNumber: 1,
+            weekNumber: plan == null ? 1 : _weekFrom(plan.startDate, target),
+            sport: sport,
+            sessionType: 'custom',
+            phase: 'base',
+            primaryZone: zone,
+            title: title,
+            plannedDurationMin: semantics.totalMinutes,
+            plannedTrimp: semantics.legacyLoad.round(),
+            sessionLevel: PlanWorkoutBuilder.sessionLevel(
+              'custom',
+              zone,
+              'base',
+            ),
+            stepsJson: Value(draft.toStepsJson()),
+            addedByAthlete: const Value(true),
+            dateModified: Value(DateTime.now()),
+            modifiedBy: const Value('athlete'),
+          ),
+        );
+    return session(id);
+  }
+
+  /// Keeps [draft] in the workout library as [name].
+  Future<String> saveToLibrary({
+    required String name,
+    required String sport,
+    required WorkoutDraft draft,
+    String description = '',
+  }) async {
+    final semantics = draft.semantics(sport: sport);
+    final id = _newId();
+    await db
+        .into(db.workoutTemplates)
+        .insert(
+          WorkoutTemplatesCompanion.insert(
+            id: id,
+            sport: sport,
+            sessionType: 'custom',
+            targetPhase: 'any',
+            name: name,
+            description: description,
+            stepsJson: draft.toStepsJson(),
+            parameterizedFor: 'self',
+            estimatedDurationMin: semantics.totalMinutes,
+            estimatedTss: semantics.legacyLoad.round(),
+            source: 'athlete',
+            createdAt: DateTime.now(),
+          ),
+        );
+    return id;
+  }
+
+  /// Plans the library workout [templateId] on [day].
+  Future<TrainingSession> planFromLibrary(
+    String templateId,
+    DateTime day,
+  ) async {
+    final t = await (db.select(
+      db.workoutTemplates,
+    )..where((w) => w.id.equals(templateId))).getSingle();
+    final made = await create(
+      day,
+      sport: t.sport,
+      title: t.name,
+      draft: WorkoutDraft.fromStepsJson(t.stepsJson) ?? WorkoutDraft.starter,
+    );
+    await (db.update(db.workoutTemplates)..where((w) => w.id.equals(t.id)))
+        .write(WorkoutTemplatesCompanion(usageCount: Value(t.usageCount + 1)));
+    return made;
+  }
+
+  int _weekFrom(DateTime planStart, DateTime target) {
+    final anchor = weekStartOf(planStart);
+    return (DateTime.utc(target.year, target.month, target.day)
+                    .difference(
+                      DateTime.utc(anchor.year, anchor.month, anchor.day),
+                    )
+                    .inDays ~/
+                7 +
+            1)
+        .clamp(1, 156);
   }
 
   /// Calendar weeks from the plan's anchor, as the plan generator counts.

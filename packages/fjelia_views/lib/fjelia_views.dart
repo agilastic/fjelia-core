@@ -4,6 +4,8 @@
 /// put it into words.
 library;
 
+export 'package:fjelia_core/models/workout_draft.dart';
+
 export 'src/activities.dart';
 export 'src/analysis.dart';
 export 'src/calendar.dart';

@@ -171,4 +171,41 @@ void main() {
       expect(copies.single.sessionDate, DateTime(2026, 11, 30));
     },
   );
+
+  test('build a workout, save it to the library and plan it again', () async {
+    const draft = WorkoutDraft([
+      DraftStep(kind: DraftStepKind.warmup, zone: 1, seconds: 600),
+      DraftRepeat(
+        times: 4,
+        steps: [
+          DraftStep(kind: DraftStepKind.interval, zone: 4, seconds: 300),
+          DraftStep(kind: DraftStepKind.recovery, zone: 1, seconds: 120),
+        ],
+      ),
+      DraftStep(kind: DraftStepKind.cooldown, zone: 1, seconds: 300),
+    ]);
+    final made = await edits.create(
+      DateTime(2026, 11, 27),
+      sport: 'running',
+      title: 'Threshold 4 × 5 min',
+      draft: draft,
+    );
+    expect(made.plannedDurationMin, 43);
+    expect(made.addedByAthlete, isTrue);
+    expect(made.plannedTrimp, greaterThan(43));
+    final shorter = await edits.setSteps(made, WorkoutDraft.starter);
+    expect(shorter.plannedDurationMin, 45);
+    expect(shorter.primaryZone, 2);
+
+    final id = await edits.saveToLibrary(
+      name: 'Threshold 4 × 5 min',
+      sport: 'running',
+      draft: draft,
+    );
+    final library = await loadWorkoutLibrary(db);
+    expect(library['running']!.single.durationMin, 43);
+    final planned = await edits.planFromLibrary(id, DateTime(2026, 12, 1));
+    expect(planned.title, 'Threshold 4 × 5 min');
+    expect(planned.sessionDate, DateTime(2026, 12, 1));
+  });
 }
