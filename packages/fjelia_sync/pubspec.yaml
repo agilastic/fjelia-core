@@ -8,7 +8,8 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
-  basic_utils: ^5.8.2
+  # 5.7: pointycastle 3, which the app's encrypt package still needs.
+  basic_utils: ">=5.7.0 <5.8.0"
   crypto: ^3.0.6
   drift: ^2.35.2
   fjelia_core:
