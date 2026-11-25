@@ -10,6 +10,7 @@ export 'src/activities.dart';
 export 'src/analysis.dart';
 export 'src/calendar.dart';
 export 'src/diary.dart';
+export 'src/fuel.dart';
 export 'src/gear.dart';
 export 'src/health.dart';
 export 'src/plan_edits.dart';

@@ -233,7 +233,18 @@ Future<TodayView> loadToday(
 
   return TodayView(
     date: date,
-    readiness: _readiness(await db.getTodayReadiness()),
+    readiness: _readiness(
+      await (db.select(db.dailyReadinessRecords)
+            ..where(
+              (r) =>
+                  r.athleteId.equals('self') &
+                  r.date.isBiggerOrEqualValue(date) &
+                  r.date.isSmallerThanValue(date.add(const Duration(days: 1))),
+            )
+            ..orderBy([(r) => OrderingTerm.desc(r.computedAt)])
+            ..limit(1))
+          .getSingleOrNull(),
+    ),
     load: TrainingLoadSummary.of(history),
     form: history.points.length > TodayView.formDays
         ? history.points.sublist(history.points.length - TodayView.formDays)
