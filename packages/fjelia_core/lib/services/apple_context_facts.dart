@@ -44,9 +44,8 @@ String appleFactLine(String line) {
   if (line.startsWith('[Memory:')) return coachMemoryFact(line);
   if (line.startsWith('[Context:')) {
     // "[Context:V4][Today:2026-10-28,Weekday:Wed,TimeNow:20:58]..."
-    final m = RegExp(
-      r'Today:([\d-]+),Weekday:(\w+),TimeNow:([\d:]+)',
-    ).firstMatch(line);
+    final m = RegExp(r'Today:([\d-]+),Weekday:(\w+),TimeNow:([\d:]+)')
+        .firstMatch(line);
     return m == null
         ? line
         : 'Today is ${m[2]} ${m[1]}; the time now is ${m[3]}. '

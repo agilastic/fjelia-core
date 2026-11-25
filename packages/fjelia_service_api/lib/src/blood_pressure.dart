@@ -115,7 +115,9 @@ class DailyBpSummary {
       try {
         segments.add(BpSegment.fromJson(e.value as Map<String, dynamic>));
       } catch (err) {
-        log('[Aktiia] daily: skipping unparsable segment ${e.key} ($err): ${e.value}');
+        log(
+          '[Aktiia] daily: skipping unparsable segment ${e.key} ($err): ${e.value}',
+        );
       }
     }
 

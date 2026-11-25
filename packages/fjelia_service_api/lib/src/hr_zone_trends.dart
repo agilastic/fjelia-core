@@ -78,9 +78,8 @@ class HrZoneTotals {
 
   /// Share of each zone in the heart-rate time, 0–1 (not of workout time).
   List<double> get zoneShares => [
-        for (final s in zoneSeconds)
-          coveredSeconds > 0 ? s / coveredSeconds : 0,
-      ];
+    for (final s in zoneSeconds) coveredSeconds > 0 ? s / coveredSeconds : 0,
+  ];
 
   /// Easy (Z1+Z2), middle (Z3) and hard (Z4+Z5) seconds.
   double get easySeconds => zoneSeconds[0] + zoneSeconds[1];

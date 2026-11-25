@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fjelia_core/utils/week.dart';
+
 import 'goal_set.dart';
 import 'season_goal.dart';
 

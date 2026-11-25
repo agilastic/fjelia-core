@@ -54,6 +54,48 @@ const _schema = [
       'received_seq INTEGER NOT NULL DEFAULT 0)',
 ];
 
+/// Columns added to the log's tables after they first shipped.
+const _addedColumns = [
+  ('sync_peers', 'secret_sha256', 'TEXT'),
+  ('sync_peers', 'address', 'TEXT'),
+];
+
+/// A device paired with this one.
+class SyncPeer {
+  const SyncPeer({
+    required this.deviceId,
+    required this.name,
+    required this.fingerprint,
+    required this.pairedAt,
+    required this.categories,
+    this.secretHash,
+    this.address,
+    this.peerLogEpoch,
+    this.receivedSeq = 0,
+  });
+
+  final String deviceId;
+  final String name;
+
+  /// SHA-256 of the peer's certificate, lowercase hex.
+  final String fingerprint;
+  final DateTime pairedAt;
+
+  /// What the peer may receive from this device.
+  final Set<SyncCategory> categories;
+
+  /// SHA-256 of the secret this device issued to the peer, which the peer
+  /// presents with every request. Null on the side that holds the secret.
+  final String? secretHash;
+
+  /// Where the peer was last reached, `host:port`.
+  final String? address;
+
+  /// The peer's log epoch and the last `seq` of it this device has.
+  final String? peerLogEpoch;
+  final int receivedSeq;
+}
+
 /// The identity of [t]'s row, as SQL over the row alias [r] (NEW, OLD or the
 /// table itself).
 String _keySql(SyncTable t, String r) => t.hasSyncId
@@ -113,6 +155,15 @@ extension SyncStore on AppDatabase {
     for (final sql in _schema) {
       await customStatement(sql);
     }
+    for (final (table, column, type) in _addedColumns) {
+      final has = await customSelect(
+        'SELECT 1 FROM pragma_table_info(?) WHERE name = ?',
+        variables: [Variable(table), Variable(column)],
+      ).getSingleOrNull();
+      if (has == null) {
+        await customStatement('ALTER TABLE $table ADD COLUMN $column $type');
+      }
+    }
     final existing = {
       for (final r in await customSelect(
         "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' "
@@ -171,6 +222,73 @@ extension SyncStore on AppDatabase {
   Future<int> syncHeadSeq() async => (await customSelect(
     'SELECT COALESCE(MAX(seq), 0) AS s FROM sync_changes',
   ).getSingle()).read<int>('s');
+
+  /// Paired devices, oldest pairing first.
+  Future<List<SyncPeer>> syncPeers() async => [
+    for (final r in await customSelect(
+      'SELECT * FROM sync_peers ORDER BY paired_at_ms',
+    ).get())
+      _peer(r),
+  ];
+
+  Future<SyncPeer?> syncPeer(String deviceId) async {
+    final r = await customSelect(
+      'SELECT * FROM sync_peers WHERE device_id = ?',
+      variables: [Variable(deviceId)],
+    ).getSingleOrNull();
+    return r == null ? null : _peer(r);
+  }
+
+  /// Adds [peer], or replaces an earlier pairing with the same device, which
+  /// then starts again from the beginning of its log.
+  Future<void> saveSyncPeer(SyncPeer peer) => customStatement(
+    'INSERT OR REPLACE INTO sync_peers (device_id, name, certificate_sha256, '
+    'paired_at_ms, categories, peer_log_epoch, received_seq, secret_sha256, '
+    'address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      peer.deviceId,
+      peer.name,
+      peer.fingerprint,
+      peer.pairedAt.millisecondsSinceEpoch,
+      peer.categories.map((c) => c.name).join(','),
+      peer.peerLogEpoch,
+      peer.receivedSeq,
+      peer.secretHash,
+      peer.address,
+    ],
+  );
+
+  /// Records that the peer's log [epoch] has been received up to [seq].
+  Future<void> setSyncPeerCursor(String deviceId, String epoch, int seq) =>
+      customStatement(
+        'UPDATE sync_peers SET peer_log_epoch = ?, received_seq = ? '
+        'WHERE device_id = ?',
+        [epoch, seq, deviceId],
+      );
+
+  Future<void> setSyncPeerAddress(String deviceId, String address) =>
+      customStatement('UPDATE sync_peers SET address = ? WHERE device_id = ?', [
+        address,
+        deviceId,
+      ]);
+
+  Future<void> removeSyncPeer(String deviceId) =>
+      customStatement('DELETE FROM sync_peers WHERE device_id = ?', [deviceId]);
+
+  SyncPeer _peer(QueryRow r) => SyncPeer(
+    deviceId: r.read<String>('device_id'),
+    name: r.read<String>('name'),
+    fingerprint: r.read<String>('certificate_sha256'),
+    pairedAt: DateTime.fromMillisecondsSinceEpoch(r.read<int>('paired_at_ms')),
+    categories: {
+      for (final c in r.read<String>('categories').split(','))
+        ?SyncCategory.values.asNameMap()[c],
+    },
+    secretHash: r.readNullable<String>('secret_sha256'),
+    address: r.readNullable<String>('address'),
+    peerLogEpoch: r.readNullable<String>('peer_log_epoch'),
+    receivedSeq: r.read<int>('received_seq'),
+  );
 
   /// Up to [limit] changes after [afterSeq] in [categories], each upsert
   /// with its current row. Tables sent [SyncTable.onRequest] are left out

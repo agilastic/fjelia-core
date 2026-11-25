@@ -338,8 +338,7 @@ class MetricAnalysis {
     final advice = switch (readiness) {
       'red' =>
         'RED: recovery comes first; easy day or rest and no intense training',
-      'yellow' =>
-        'YELLOW: functional overload; keep planned training but add no extra intensity',
+      'yellow' => 'YELLOW: functional overload; keep planned training but add no extra intensity',
       _ => 'GREEN: train as planned; hard sessions are fine',
     };
     // The Brief: what matters, ranked, decided here and not by a model.

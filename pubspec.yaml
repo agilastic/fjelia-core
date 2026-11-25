@@ -8,3 +8,4 @@ workspace:
   - packages/fjelia_core
   - packages/fjelia_service_api
   - packages/fjelia_data
+  - packages/fjelia_sync

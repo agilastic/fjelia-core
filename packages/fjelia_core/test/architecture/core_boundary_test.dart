@@ -27,7 +27,10 @@ const _forbiddenDartLibraries = {
 
 void main() {
   test('lib imports only the Dart SDK and allowed pure-Dart packages', () {
-    final directive = RegExp(r"^(?:import|export)\s+'([^']+)'", multiLine: true);
+    final directive = RegExp(
+      r"^(?:import|export)\s+'([^']+)'",
+      multiLine: true,
+    );
     final violations = <String>[];
     for (final file in Directory('lib').listSync(recursive: true)) {
       if (file is! File || !file.path.endsWith('.dart')) continue;

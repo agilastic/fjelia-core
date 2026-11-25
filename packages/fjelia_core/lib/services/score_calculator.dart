@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fjelia_service_api/fjelia_service_api.dart';
+
 import '../models/garmin_data.dart';
 import '../models/scores.dart';
 
@@ -28,8 +29,13 @@ class ScoreCalculator {
     final easyDay = previousLoad * 0.85 > strain.score;
     return DayScores(
       date: date,
-      recovery: calculateRecovery(hrv, sleep, bp, recentRestingHr,
-          easyDay: easyDay),
+      recovery: calculateRecovery(
+        hrv,
+        sleep,
+        bp,
+        recentRestingHr,
+        easyDay: easyDay,
+      ),
       sleep: calculateSleep(sleep, previousLoad, accumulatedSleepDebtMinutes),
       strain: strain,
       bloodPressure: calculateBpScore(bp),
@@ -46,10 +52,10 @@ class ScoreCalculator {
     final sysScore = sys < 120
         ? 20.0
         : sys < 130
-            ? 15.0
-            : sys < 140
-                ? 8.0
-                : 0.0;
+        ? 15.0
+        : sys < 140
+        ? 8.0
+        : 0.0;
     return BloodPressureScore(
       score: (normal + dipScore + sysScore).clamp(0.0, 100.0),
       nightDippingPercent: dip,
@@ -57,8 +63,11 @@ class ScoreCalculator {
   }
 
   /// Sleep need grows with the previous day's load and accumulated debt.
-  SleepScore? calculateSleep(SleepData? sleep,
-      [double previousLoad = 0.0, double sleepDebtMinutes = 0.0]) {
+  SleepScore? calculateSleep(
+    SleepData? sleep, [
+    double previousLoad = 0.0,
+    double sleepDebtMinutes = 0.0,
+  ]) {
     if (sleep == null) return null;
 
     Duration need;
@@ -82,8 +91,10 @@ class ScoreCalculator {
       final deepScore = (sleep.deepPercent / 20).clamp(0.0, 1.0) * 25;
       final remScore = (sleep.remPercent / 25).clamp(0.0, 1.0) * 25;
       final effScore = (sleep.efficiency / 100).clamp(0.0, 1.0) * 10;
-      score = (durationScore + deepScore + remScore + effScore)
-          .clamp(0.0, 100.0);
+      score = (durationScore + deepScore + remScore + effScore).clamp(
+        0.0,
+        100.0,
+      );
     }
 
     return SleepScore(
@@ -131,9 +142,11 @@ class ScoreCalculator {
         sleepComp = (garminScore / 100).clamp(0.0, 1.0);
       } else {
         final duration = (sleep.totalSleep.inMinutes / 480).clamp(0.0, 1.0);
-        final quality = (sleep.deepPercent / 20 * 0.5 +
-                sleep.remPercent / 25 * 0.5)
-            .clamp(0.0, 1.0);
+        final quality =
+            (sleep.deepPercent / 20 * 0.5 + sleep.remPercent / 25 * 0.5).clamp(
+              0.0,
+              1.0,
+            );
         sleepComp = (duration * 0.6 + quality * 0.4).clamp(0.0, 1.0);
       }
     }
@@ -160,8 +173,8 @@ class ScoreCalculator {
     final recommendation = score >= 67
         ? 'hard'
         : score >= 34
-            ? 'moderate'
-            : 'rest';
+        ? 'moderate'
+        : 'rest';
     return RecoveryScore(score: score, recommendation: recommendation);
   }
 

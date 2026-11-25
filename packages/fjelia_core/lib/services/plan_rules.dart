@@ -126,9 +126,27 @@ class PlanSessionSlot {
   );
 }
 
-const planStrengthFull = PlanSessionSlot('strength', 'key', 'strengthFull', 3, 0);
-const planStrengthLower = PlanSessionSlot('strength', 'key', 'strengthLower', 3, 0);
-const planStrengthCore = PlanSessionSlot('strength', 'key', 'strengthCore', 3, 0);
+const planStrengthFull = PlanSessionSlot(
+  'strength',
+  'key',
+  'strengthFull',
+  3,
+  0,
+);
+const planStrengthLower = PlanSessionSlot(
+  'strength',
+  'key',
+  'strengthLower',
+  3,
+  0,
+);
+const planStrengthCore = PlanSessionSlot(
+  'strength',
+  'key',
+  'strengthCore',
+  3,
+  0,
+);
 const planYoga = PlanSessionSlot('yoga', 'recovery', null, 1, 5);
 
 /// Default week per sport: (sport, type, subType, zone, weekday).

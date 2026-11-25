@@ -7,6 +7,7 @@ desktop app (`fjelia-desktop`) and the backend worker (`fjelia-service`).
 | --- | --- |
 | `packages/fjelia_core` | Domain models and algorithms: zones, load and form, HRV, ECG, sleep staging, FIT/GPX/TCX parsing, scores, planning, AI Coach context |
 | `packages/fjelia_data` | The Drift database: schema, migrations and queries, shared by the mobile and desktop apps (opening it is each app's part) |
+| `packages/fjelia_sync` | Nearby sync: device identity, pairing by QR code and the HTTPS transport between an athlete's devices (uses `dart:io`) |
 | `packages/fjelia_service_api` | Public interfaces of the optional private service package; the apps' public stub and the private implementation both build on it |
 
 `fjelia_core` depends on the Dart SDK and pure-Dart packages only.
@@ -51,6 +52,15 @@ the newest change of each synced record, a peer asks for everything after
 the last `seq` it received, and received changes are applied without being
 logged as the receiving device's own. Rows without a natural key get a
 permanent sync id, because their integer ids are numbered per device.
+
+`fjelia_sync` moves the log. The desktop runs a `SyncServer` over HTTPS with
+a self-signed certificate and shows a pairing code (`PairingOffer`, a
+`fjelia://pair` link for a QR code) with its fingerprint, addresses and a
+one-time token valid for five minutes. The phone's `SyncClient` accepts only
+that certificate, presents the token and receives a secret, which it keeps in
+the app's secure storage; the desktop stores only its hash. After that the
+phone sends every change after the desktop's cursor, in gzip pages. Each app
+supplies a `SecretStore` for the device identity and secrets.
 
 ## Commands
 

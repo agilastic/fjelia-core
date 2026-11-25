@@ -437,7 +437,11 @@ List<PreviewDay> previewRebalance(RebalanceProposal p, RebalanceContext c) {
     }
   }
 
-  PreviewItem changed(PlannedSessionView s, RebalanceChange x, PreviewKind kind) {
+  PreviewItem changed(
+    PlannedSessionView s,
+    RebalanceChange x,
+    PreviewKind kind,
+  ) {
     final minutes = x.intensity == RebalanceIntensity.recovery
         ? (s.plannedDurationMin < 30 ? s.plannedDurationMin : 30)
         : (x.durationMin ?? s.plannedDurationMin);

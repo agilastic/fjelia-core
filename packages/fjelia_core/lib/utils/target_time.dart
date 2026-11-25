@@ -27,9 +27,8 @@ int? parseTargetTime(String? input, {double? distanceKm, String? sport}) {
   final text = input?.trim().toLowerCase().replaceAll(',', '.') ?? '';
   if (text.isEmpty) return null;
 
-  final hm = RegExp(
-    r'^(\d{1,3})\s*h\s*(?:(\d{1,2})\s*(?:m|min)?)?\s*$',
-  ).firstMatch(text);
+  final hm = RegExp(r'^(\d{1,3})\s*h\s*(?:(\d{1,2})\s*(?:m|min)?)?\s*$')
+      .firstMatch(text);
   if (hm != null) {
     final minutes = int.tryParse(hm.group(2) ?? '0') ?? 0;
     if (minutes >= 60) return null;
