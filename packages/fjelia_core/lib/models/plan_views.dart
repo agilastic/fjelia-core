@@ -14,6 +14,8 @@ abstract interface class PlannedSessionView {
   int get primaryZone;
   int get plannedDurationMin;
   int get plannedTrimp;
+  int get sessionLevel;
+  String? get stepsJson;
   String? get plannedZonesJson;
   bool get indoor;
   String? get sessionNotes;
