@@ -46,3 +46,17 @@ abstract interface class ActivityView {
   double? get plannedDistanceMeters;
   String? get plannedStepsJson;
 }
+
+/// A race or event goal.
+abstract interface class RaceGoalView {
+  String get id;
+  String get name;
+  String get primarySport;
+  DateTime get raceDate;
+  double get distanceM;
+  double? get elevationM;
+  int? get targetFinishSeconds;
+  String get priority;
+  String get participation;
+  String? get ambition;
+}
