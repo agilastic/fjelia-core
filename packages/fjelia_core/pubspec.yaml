@@ -1,0 +1,22 @@
+name: fjelia_core
+description: Platform-independent Fjelia domain models and algorithms.
+publish_to: 'none'
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  crypto: ^3.0.7
+  fit_sdk: ^0.3.0
+  intl: ^0.20.2
+  xml: ^6.5.0
+  # Moves into this repository in a later wave; until then it comes from
+  # the app checkout next to this one.
+  fjelia_service_api:
+    path: ../../../fjelia/packages/fjelia_service_api
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
