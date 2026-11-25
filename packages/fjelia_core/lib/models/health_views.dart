@@ -8,6 +8,11 @@ abstract interface class HrvDayView {
   double? get hrvLastNight;
   int? get restingHeartRate;
   double? get bodyBattery;
+  double? get computedEnergie;
+  double? get respirationRate;
+  double? get skinTempDelta;
+  double? get stressLevel;
+  double? get spo2;
 }
 
 /// One night's sleep.
