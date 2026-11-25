@@ -12,6 +12,7 @@ const _allowedPackages = {
   'fit_sdk',
   'intl',
   'meta',
+  'uuid',
   'xml',
 };
 
