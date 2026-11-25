@@ -13,11 +13,14 @@ abstract interface class PlannedSessionView {
   String get status;
   int get primaryZone;
   int get plannedDurationMin;
+  int get plannedTrimp;
   String? get plannedZonesJson;
   bool get indoor;
   String? get sessionNotes;
   String? get paceRangesJson;
   String? get goalObjective;
+  String? get sessionDateOriginal;
+  int? get actualDurationMin;
 }
 
 /// A recorded activity.
@@ -73,4 +76,7 @@ abstract interface class WorkoutTemplateView {
   String get targetPhase;
   String get stepsJson;
   int get estimatedDurationMin;
+  String get name;
+  String get description;
+  String? get coachingCues;
 }
