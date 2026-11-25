@@ -3052,6 +3052,29 @@ class AppDatabase extends _$AppDatabase {
         'AFTER UPDATE OF type ON activity_records WHEN $changedSport '
         'BEGIN $keepSport',
       );
+      // The other way: a title or sport that arrives by itself (from a
+      // synced device) carries into the activity, and taking it back
+      // restores what the provider said.
+      for (final (table, column, original) in const [
+        ('activity_titles', 'title', 'original_name'),
+        ('activity_sports', 'type', 'original_type'),
+      ]) {
+        final target = column == 'title' ? 'name' : 'type';
+        for (final event in const ['INSERT', 'UPDATE']) {
+          await customStatement(
+            'CREATE TRIGGER IF NOT EXISTS trg_${table}_${event.toLowerCase()}_carries '
+            'AFTER $event ON $table BEGIN UPDATE activity_records '
+            'SET $target = NEW.$column WHERE activity_id = NEW.activity_id '
+            'AND $target IS NOT NEW.$column; END',
+          );
+        }
+        await customStatement(
+          'CREATE TRIGGER IF NOT EXISTS trg_${table}_delete_restores '
+          'AFTER DELETE ON $table BEGIN UPDATE activity_records '
+          'SET $target = OLD.$original WHERE activity_id = OLD.activity_id '
+          'AND $target IS OLD.$column; END',
+        );
+      }
       await _recordHrZoneDefinitions();
       await installSync();
     },

@@ -108,6 +108,8 @@ class SyncServer {
           });
         case ('POST', changesPath):
           await _receive(request, peer);
+        case ('GET', changesPath):
+          await _send(request, peer);
         case ('DELETE', pairPath):
           await db.removeSyncPeer(peer.deviceId);
           _events.add(PeerUnpaired(peer));
@@ -195,7 +197,7 @@ class SyncServer {
     final restarted =
         peer.peerLogEpoch != null && epoch != peer.peerLogEpoch && from == 0;
     await db.transaction(() async {
-      if (restarted) await db.clearSyncedData();
+      if (restarted) await db.clearSyncedData(origin: peer.deviceId);
       await db.applySyncChanges(changes, fromDevice: peer.deviceId);
       await db.setSyncPeerCursor(
         peer.deviceId,
@@ -206,6 +208,27 @@ class SyncServer {
     _events.add(ChangesReceived(peer, changes.length));
     await writeJson(request.response, 200, {
       'seq': changes.isEmpty ? from : changes.last.seq,
+    });
+  }
+
+  /// What this device has that [peer] does not: its own changes and those
+  /// of other devices, never the peer's own. A cursor from another log
+  /// epoch starts again at 0.
+  Future<void> _send(HttpRequest request, SyncPeer peer) async {
+    final q = request.uri.queryParameters;
+    final epoch = await db.syncLogEpoch();
+    final after = q['epoch'] == epoch ? int.tryParse(q['after'] ?? '') ?? 0 : 0;
+    final limit = (int.tryParse(q['limit'] ?? '') ?? 200).clamp(1, 1000);
+    final changes = await db.syncChangesSince(
+      after,
+      limit: limit,
+      categories: peer.categories,
+      exceptOrigin: peer.deviceId,
+    );
+    await writeJson(request.response, 200, {
+      'epoch': epoch,
+      'from': after,
+      'changes': [for (final c in changes) c.toJson()],
     });
   }
 

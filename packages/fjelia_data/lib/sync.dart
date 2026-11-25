@@ -292,12 +292,14 @@ extension SyncStore on AppDatabase {
 
   /// Up to [limit] changes after [afterSeq] in [categories], each upsert
   /// with its current row. Tables sent [SyncTable.onRequest] are left out
-  /// unless [onRequest] is set.
+  /// unless [onRequest] is set. Changes that came from [exceptOrigin] are
+  /// left out too: a device never gets its own changes back.
   Future<List<SyncChange>> syncChangesSince(
     int afterSeq, {
     int limit = 500,
     Set<SyncCategory> categories = const {...SyncCategory.values},
     bool onRequest = false,
+    String? exceptOrigin,
   }) => transaction(() async {
     final tables = [
       for (final t in syncTables)
@@ -307,8 +309,14 @@ extension SyncStore on AppDatabase {
     if (tables.isEmpty) return const [];
     final rows = await customSelect(
       'SELECT * FROM sync_changes WHERE seq > ? '
-      'AND record_table IN (${tables.join(', ')}) ORDER BY seq LIMIT ?',
-      variables: [Variable.withInt(afterSeq), Variable.withInt(limit)],
+      'AND record_table IN (${tables.join(', ')}) '
+      '${exceptOrigin == null ? '' : 'AND (origin_device IS NULL OR origin_device != ?) '}'
+      'ORDER BY seq LIMIT ?',
+      variables: [
+        Variable.withInt(afterSeq),
+        if (exceptOrigin != null) Variable.withString(exceptOrigin),
+        Variable.withInt(limit),
+      ],
     ).get();
     return [
       for (final r in rows)
@@ -335,21 +343,40 @@ extension SyncStore on AppDatabase {
     ];
   });
 
-  /// Writes changes received from [fromDevice]. Each is logged here as made
-  /// on its origin device, so it is not sent back there.
+  /// Writes changes received from [fromDevice] and returns how many were
+  /// taken. Each is logged here as made on its origin device, so it is not
+  /// sent back there.
   ///
-  /// The desktop of the first release only receives, so a received change
-  /// always wins; weighing [SyncMerge] against local edits comes with
-  /// editing on more than one device.
-  Future<void> applySyncChanges(
+  /// A record both devices edit ([SyncMerge.newestWins]) keeps the newer
+  /// change: a received change older than this device's own is left out,
+  /// and the own one travels back on the next sync. A record that belongs
+  /// to the device that recorded it ([SyncMerge.appendOnly]) always takes
+  /// the received change.
+  Future<int> applySyncChanges(
     List<SyncChange> changes, {
     required String fromDevice,
   }) => transaction(() async {
     await customStatement('UPDATE sync_state SET applying = 1');
     final columns = <String, Set<String>>{};
+    var applied = 0;
     for (final c in changes) {
       final t = syncTableNamed(c.table);
       if (t == null) continue; // a newer peer's table this version lacks
+      if (t.merge == SyncMerge.newestWins) {
+        final mine = await customSelect(
+          'SELECT changed_at_ms, origin_device FROM sync_changes '
+          'WHERE record_table = ? AND record_key = json(?)',
+          variables: [Variable(t.name), Variable(c.keyText)],
+        ).getSingleOrNull();
+        final origin = c.originDevice ?? fromDevice;
+        if (mine != null &&
+            mine.readNullable<String>('origin_device') != origin &&
+            mine.read<int>('changed_at_ms') >
+                c.changedAt.millisecondsSinceEpoch) {
+          continue;
+        }
+      }
+      applied++;
       final local = columns[t.name] ??= {
         for (final r in await customSelect(
           'PRAGMA table_info("${t.name}")',
@@ -378,18 +405,37 @@ extension SyncStore on AppDatabase {
     }
     await customStatement('UPDATE sync_state SET applying = 0');
     markTablesUpdated(allTables);
+    return applied;
   });
 
-  /// Removes every synced record, without logging it. A desktop that
-  /// mirrors one phone does this when the phone starts a new log, which
-  /// resends what it has but cannot name what it dropped.
-  Future<void> clearSyncedData() => transaction(() async {
+  /// Removes synced records without logging it: every one, or with
+  /// [origin] only those that came from that device. A computer does the
+  /// latter when a phone starts a new log, which resends what it has but
+  /// cannot name what it dropped; the computer's own records stay.
+  Future<void> clearSyncedData({String? origin}) => transaction(() async {
     await customStatement('UPDATE sync_state SET applying = 1');
-    for (final t in syncTables.reversed) {
-      await customStatement('DELETE FROM "${t.name}"');
+    if (origin == null) {
+      for (final t in syncTables.reversed) {
+        await customStatement('DELETE FROM "${t.name}"');
+      }
+      await customStatement('DELETE FROM sync_row_ids');
+      await customStatement('DELETE FROM sync_changes');
+    } else {
+      final theirs = await customSelect(
+        'SELECT record_table, record_key, op FROM sync_changes '
+        'WHERE origin_device = ?',
+        variables: [Variable(origin)],
+      ).get();
+      for (final r in theirs) {
+        final t = syncTableNamed(r.read<String>('record_table'));
+        if (t == null || r.read<String>('op') != SyncOp.upsert.name) continue;
+        await _deleteRow(t, jsonDecode(r.read<String>('record_key')) as List);
+      }
+      await customStatement(
+        'DELETE FROM sync_changes WHERE origin_device = ?',
+        [origin],
+      );
     }
-    await customStatement('DELETE FROM sync_row_ids');
-    await customStatement('DELETE FROM sync_changes');
     await customStatement('UPDATE sync_state SET applying = 0');
     markTablesUpdated(allTables);
   });

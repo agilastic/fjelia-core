@@ -235,4 +235,47 @@ void main() {
     await phone.into(phone.absences).insert(absence('illness'));
     expect(await phone.syncChangesSince(0), hasLength(2));
   });
+
+  test('a device never gets its own changes back', () async {
+    await phone.into(phone.absences).insert(absence('vacation'));
+    await sync();
+    await desktop.into(desktop.absences).insert(absence('injury'));
+    final back = await desktop.syncChangesSince(0, exceptOrigin: 'phone');
+    expect(back.single.row?['kind'], 'injury');
+    expect(back.single.originDevice, isNull); // made on the desktop
+  });
+
+  test('the newer edit wins on both sides', () async {
+    await phone.into(phone.activityRecords).insert(activity('a1', 'Run'));
+    await sync();
+    // Both rename; the desktop later.
+    await phone.renameActivity('a1', 'Phone name');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await desktop.renameActivity('a1', 'Desktop name');
+    // The phone's older rename does not overwrite the desktop's.
+    final fromPhone = await phone.syncChangesSince(0);
+    final taken = await desktop.applySyncChanges(
+      fromPhone,
+      fromDevice: 'phone',
+    );
+    expect(taken, lessThan(fromPhone.length));
+    expect((await desktop.getActivityById('a1'))?.name, 'Desktop name');
+    // The desktop's newer one reaches the phone.
+    final fromDesktop = await desktop.syncChangesSince(
+      0,
+      exceptOrigin: 'phone',
+    );
+    await phone.applySyncChanges(fromDesktop, fromDevice: 'desktop');
+    expect((await phone.getActivityById('a1'))?.name, 'Desktop name');
+  });
+
+  test('clearing one phone keeps the computer\'s own records', () async {
+    await phone.into(phone.absences).insert(absence('vacation'));
+    await sync();
+    await desktop.into(desktop.absences).insert(absence('injury'));
+    await desktop.clearSyncedData(origin: 'phone');
+    final left = await desktop.select(desktop.absences).get();
+    expect(left.single.kind, 'injury');
+    expect((await desktop.syncChangesSince(0)).single.row?['kind'], 'injury');
+  });
 }

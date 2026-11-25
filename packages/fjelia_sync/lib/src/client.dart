@@ -4,6 +4,7 @@ import 'dart:developer' show log;
 import 'dart:io';
 
 import 'package:fjelia_core/services/sync/pairing.dart';
+import 'package:fjelia_core/services/sync/sync_change.dart';
 import 'package:fjelia_core/services/sync/sync_tables.dart';
 import 'package:fjelia_data/database.dart';
 import 'package:fjelia_data/sync.dart';
@@ -89,13 +90,23 @@ class SyncClient {
   /// [onPage] reports the number sent so far. When the peer is not at its
   /// last address any more, [locator] finds it by its device id and the new
   /// address is kept.
-  Future<int> push(SyncPeer peer, {void Function(int sent)? onPage}) async {
+  Future<int> push(SyncPeer peer, {void Function(int sent)? onPage}) async =>
+      (await sync(peer, onPage: onPage, pull: false)).sent;
+
+  /// Sends [peer] what it does not have, then takes what it has that this
+  /// device does not: changes made there, never this device's own coming
+  /// back. With [pull] false it only sends.
+  Future<SyncResult> sync(
+    SyncPeer peer, {
+    void Function(int sent)? onPage,
+    bool pull = true,
+  }) async {
     final secret = await secrets.read(_secretKey(peer.deviceId));
     if (secret == null) throw const SyncRefused(401, 'unknown_device');
     final known = peer.address;
     if (known != null) {
       try {
-        return await _pushTo(known, peer, secret, onPage);
+        return await _exchange(known, peer, secret, onPage, pull);
       } on SyncRefused {
         rethrow; // the peer answered
       } on Object catch (e) {
@@ -108,14 +119,15 @@ class SyncClient {
       throw SocketException('${peer.name} is not on this network');
     }
     await db.setSyncPeerAddress(peer.deviceId, found);
-    return _pushTo(found, peer, secret, onPage);
+    return _exchange(found, peer, secret, onPage, pull);
   }
 
-  Future<int> _pushTo(
+  Future<SyncResult> _exchange(
     String address,
     SyncPeer peer,
     String secret,
     void Function(int sent)? onPage,
+    bool pull,
   ) async {
     final base = Uri.parse('https://$address');
     final client = _client(peer.fingerprint);
@@ -142,8 +154,9 @@ class SyncClient {
           from,
           limit: pageSize,
           categories: peer.categories,
+          exceptOrigin: peer.deviceId,
         );
-        if (page.isEmpty) return sent;
+        if (page.isEmpty) break;
         await _send(client, 'POST', base.replace(path: changesPath), {
           'schema': db.schemaVersion,
           'epoch': epoch,
@@ -153,6 +166,45 @@ class SyncClient {
         from = page.last.seq;
         sent += page.length;
         onPage?.call(sent);
+      }
+      if (!pull) return SyncResult(sent: sent, received: 0);
+
+      // What the peer has: from where this device left off in its log.
+      final known = await db.syncPeer(peer.deviceId);
+      var after = known?.receivedSeq ?? 0;
+      var theirEpoch = known?.peerLogEpoch;
+      var received = 0;
+      while (true) {
+        final page = await _send(
+          client,
+          'GET',
+          base.replace(
+            path: changesPath,
+            queryParameters: {
+              'after': '$after',
+              'epoch': ?theirEpoch,
+              'limit': '$pageSize',
+            },
+          ),
+          null,
+          headers,
+        );
+        theirEpoch = page['epoch'] as String;
+        after = page['from'] as int;
+        final changes = [
+          for (final c in page['changes'] as List)
+            SyncChange.fromJson((c as Map).cast<String, Object?>()),
+        ];
+        if (changes.isEmpty) {
+          await db.setSyncPeerCursor(peer.deviceId, theirEpoch, after);
+          return SyncResult(sent: sent, received: received);
+        }
+        received += await db.applySyncChanges(
+          changes,
+          fromDevice: peer.deviceId,
+        );
+        after = changes.last.seq;
+        await db.setSyncPeerCursor(peer.deviceId, theirEpoch, after);
       }
     } finally {
       client.close(force: true);
@@ -221,4 +273,14 @@ class SyncClient {
     }
     return json;
   }
+}
+
+/// What one sync moved.
+class SyncResult {
+  const SyncResult({required this.sent, required this.received});
+  final int sent;
+
+  /// Changes taken from the peer; a change older than this device's own
+  /// edit of the same record is not counted.
+  final int received;
 }

@@ -239,6 +239,44 @@ void main() {
     await server.start(); // for tearDown
   });
 
+  test(
+    'changes made on the computer reach the phone, nothing echoes',
+    () async {
+      await run('a1');
+      final desktop = await phone.pair(await offer());
+      expect(await phone.sync(desktop), isA<SyncResult>());
+      // The computer renames the run and notes a vacation.
+      await desktopDb.renameActivity('a1', 'Hill Run');
+      await desktopDb
+          .into(desktopDb.absences)
+          .insert(
+            AbsencesCompanion.insert(
+              kind: 'vacation',
+              startDay: day,
+              endDay: day.add(const Duration(days: 2)),
+              createdAt: day,
+            ),
+          );
+      final peer = (await phoneDb.syncPeer(desktop.deviceId))!;
+      final first = await phone.sync(peer);
+      expect(first.sent, 0);
+      expect(first.received, greaterThan(0));
+      expect((await phoneDb.getActivityById('a1'))?.name, 'Hill Run');
+      expect(await phoneDb.select(phoneDb.absences).get(), hasLength(1));
+      // Nothing goes back and forth any more.
+      final again = await phone.sync(
+        (await phoneDb.syncPeer(desktop.deviceId))!,
+      );
+      expect((again.sent, again.received), (0, 0));
+      // The phone's next own change still goes out alone.
+      await run('a2');
+      final third = await phone.sync(
+        (await phoneDb.syncPeer(desktop.deviceId))!,
+      );
+      expect((third.sent, third.received), (1, 0));
+    },
+  );
+
   test('unpairing ends it on both devices', () async {
     final desktop = await phone.pair(await offer());
     await phone.unpair(desktop);
