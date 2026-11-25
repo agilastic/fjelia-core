@@ -48,8 +48,11 @@ void main() {
       'weeks': [
         for (var w = 0; w < 3; w++)
           {
-            'week':
-                '2026-11-${(23 + w * 7) > 30 ? '0${23 + w * 7 - 30}' : 23 + w * 7}',
+            'week': DateTime(
+              2026,
+              11,
+              23 + w * 7,
+            ).toIso8601String().substring(0, 10),
             'phase': w == 2 ? 'unload' : 'base',
             'intents': {'m': 'build', 'b': 'base'},
             'allocation': {
