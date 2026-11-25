@@ -1,5 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
+import 'package:fjelia_core/models/garmin_data.dart';
+import 'package:fjelia_core/services/activity_kind.dart';
 import 'package:fjelia_core/services/readiness.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_data/database.dart';
@@ -161,5 +163,34 @@ void main() {
     expect(rideStats[ActivityStat.avgPower], 210);
     expect(rideStats.containsKey(ActivityStat.pace), isFalse);
     expect(await loadActivityDetail(db, 'missing'), isNull);
+  });
+
+  test('a run graphs pace, a ride speed, and only what was measured', () {
+    final start = DateTime(2026, 11, 22, 8);
+    final samples = [
+      for (var i = 0; i < 2000; i++)
+        ActivitySample(
+          timestamp: start.add(Duration(seconds: i)),
+          distanceMeters: i * 3.0,
+          heartRate: 140,
+          speed: 3,
+          elevation: 50,
+        ),
+    ];
+    final run = activitySeries(ActivityKind.running, samples, start);
+    expect(run.keys, [
+      ActivitySeries.heartRate,
+      ActivitySeries.pace,
+      ActivitySeries.elevation,
+    ]);
+    expect(run[ActivitySeries.pace]!.first.$2, closeTo(333.3, 0.1));
+    expect(
+      run[ActivitySeries.heartRate]!.length,
+      lessThanOrEqualTo(ActivityDetail.maxSeriesPoints),
+    );
+    final ride = activitySeries(ActivityKind.cycling, samples, start);
+    expect(ride.containsKey(ActivitySeries.speed), isTrue);
+    expect(ride.containsKey(ActivitySeries.pace), isFalse);
+    expect(ride.containsKey(ActivitySeries.power), isFalse);
   });
 }

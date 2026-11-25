@@ -159,6 +159,9 @@ enum ActivityStat {
   calories,
 }
 
+/// A measured value over an activity's time.
+enum ActivitySeries { heartRate, pace, speed, elevation, power, cadence }
+
 /// What an activity's page shows.
 class ActivityDetail {
   const ActivityDetail({
@@ -166,6 +169,7 @@ class ActivityDetail {
     required this.activity,
     required this.stats,
     required this.zoneSeconds,
+    required this.series,
     this.note,
     this.description,
   });
@@ -182,6 +186,13 @@ class ActivityDetail {
 
   /// Seconds in heart-rate zones 1 to 5, empty without heart rate.
   final List<double> zoneSeconds;
+
+  /// The graphs that apply to this sport and that the file has, as elapsed
+  /// seconds and value: pace in seconds per km (per 100 m for swimming),
+  /// speed in m/s. At most [maxSeriesPoints] points each.
+  final Map<ActivitySeries, List<(double, double)>> series;
+
+  static const maxSeriesPoints = 600;
   final String? note;
   final String? description;
 
@@ -212,6 +223,7 @@ Future<ActivityDetail?> loadActivityDetail(AppDatabase db, String id) async {
     activity: activity,
     stats: activityStats(item.kind, row),
     zoneSeconds: _zones(summary?.zoneSecondsJson, activity.hrZoneSeconds),
+    series: activitySeries(item.kind, activity.samples, item.start),
     note: row.athleteNote,
     description: row.description,
   );
@@ -266,4 +278,52 @@ List<double> _zones(String? summaryJson, Map<String, double> fromFile) {
   }
   final zones = [for (var z = 1; z <= 5; z++) fromFile['zone$z'] ?? 0.0];
   return zones.any((s) => s > 0) ? zones : const [];
+}
+
+/// The graphs of [samples] for an activity of [kind] that started at
+/// [start].
+Map<ActivitySeries, List<(double, double)>> activitySeries(
+  ActivityKind kind,
+  List<ActivitySample> samples,
+  DateTime start,
+) {
+  final timed = [
+    for (final s in samples)
+      if (s.timestamp != null) s,
+  ];
+  if (timed.length < 2) return const {};
+  final step = (timed.length / ActivityDetail.maxSeriesPoints).ceil();
+  final paced = switch (kind) {
+    ActivityKind.running || ActivityKind.walking || ActivityKind.hiking => 1000,
+    ActivityKind.swimming => 100,
+    _ => null,
+  };
+  final origin = timed.first.timestamp!;
+  final series = <ActivitySeries, List<(double, double)>>{};
+  void add(ActivitySeries key, double x, double? v) {
+    if (v == null || !v.isFinite) return;
+    (series[key] ??= []).add((x, v));
+  }
+
+  for (var i = 0; i < timed.length; i += step) {
+    final s = timed[i];
+    final x = s.timestamp!.difference(origin).inMilliseconds / 1000;
+    add(ActivitySeries.heartRate, x, s.heartRate);
+    final speed = s.speed;
+    if (speed != null && speed > 0.3) {
+      if (paced != null) {
+        add(ActivitySeries.pace, x, paced / speed);
+      } else if (kind == ActivityKind.cycling) {
+        add(ActivitySeries.speed, x, speed);
+      }
+    }
+    add(ActivitySeries.elevation, x, s.elevation);
+    if (s.power case final w? when w > 0) add(ActivitySeries.power, x, w);
+    if (s.cadence case final c? when c > 0) add(ActivitySeries.cadence, x, c);
+  }
+  series.removeWhere((_, points) => points.length < 2);
+  return {
+    for (final key in ActivitySeries.values)
+      if (series[key] case final points?) key: points,
+  };
 }

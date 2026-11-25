@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:fjelia_core/services/readiness.dart';
+import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
 
@@ -130,15 +131,22 @@ class TodayView {
     required this.today,
     required this.week,
     required this.recent,
+    required this.form,
     this.readiness,
     this.nextGoal,
   });
+
+  /// How many days of [form] Today shows.
+  static const formDays = 90;
 
   final DateTime date;
 
   /// Null until the phone has done today's morning check.
   final ReadinessView? readiness;
   final TrainingLoadSummary load;
+
+  /// Fitness, fatigue and form over the last [formDays] days.
+  final List<FormPoint> form;
 
   /// Today's planned sessions.
   final List<PlannedSession> today;
@@ -227,6 +235,9 @@ Future<TodayView> loadToday(
     date: date,
     readiness: _readiness(await db.getTodayReadiness()),
     load: TrainingLoadSummary.of(history),
+    form: history.points.length > TodayView.formDays
+        ? history.points.sublist(history.points.length - TodayView.formDays)
+        : history.points,
     today: [
       for (final p in planned)
         if (p.date == date) p,
