@@ -324,6 +324,6 @@ Map<ActivitySeries, List<(double, double)>> activitySeries(
   series.removeWhere((_, points) => points.length < 2);
   return {
     for (final key in ActivitySeries.values)
-      if (series[key] case final points?) key: points,
+      if (series.containsKey(key)) key: series[key]!,
   };
 }
