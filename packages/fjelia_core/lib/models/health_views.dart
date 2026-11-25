@@ -32,3 +32,14 @@ abstract interface class WellnessDayView {
   int? get activeCalories;
   double? get averageStress;
 }
+
+/// A stored ECG recording, without its waveform.
+abstract interface class EcgRecordingView {
+  String get recordingId;
+  DateTime get recordedAt;
+  String get source;
+  String get deviceName;
+  String get kind;
+  int get durationMs;
+  String? get activityId;
+}
