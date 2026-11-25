@@ -1548,6 +1548,48 @@ class CoachMessages extends Table {
   DateTimeColumn get createdAt => dateTime()();
 }
 
+/// Shoes, bikes and other equipment the athlete trains with. Its distance
+/// is [startKm] plus the activities it was used for: those linked in
+/// [ActivityGear], and the rest of its [sports] while it is the default
+/// for them.
+@DataClassName('GearRow')
+class Gear extends Table {
+  TextColumn get id => text()();
+
+  /// `shoes`, `bike` or `other`.
+  TextColumn get kind => text()();
+  TextColumn get name => text()();
+  TextColumn get brand => text().nullable()();
+
+  /// Sport keys it is used for, as a JSON list.
+  TextColumn get sportsJson => text().withDefault(const Constant('[]'))();
+
+  /// Whether activities of its sports count for it unless linked elsewhere.
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+
+  /// Kilometres it had before Fjelia knew it.
+  RealColumn get startKm => real().withDefault(const Constant(0))();
+
+  /// The distance at which to replace it, if the athlete set one.
+  RealColumn get retireAtKm => real().nullable()();
+  DateTimeColumn get firstUsed => dateTime()();
+  DateTimeColumn get retiredAt => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// The equipment an activity was done with, when the athlete said.
+@DataClassName('ActivityGearRow')
+class ActivityGear extends Table {
+  TextColumn get activityId => text()();
+  TextColumn get gearId => text()();
+
+  @override
+  Set<Column> get primaryKey => {activityId};
+}
+
 class MediaItems extends Table {
   TextColumn get id => text()();
 
@@ -1659,6 +1701,8 @@ List<BpMeasurement> _validBpRows(List<BpMeasurement> rows) =>
     WorkoutTemplates,
     DfaAlpha1Results,
     MediaItems,
+    Gear,
+    ActivityGear,
     CoachMemories,
     ProReports,
   ],
@@ -1673,7 +1717,7 @@ class AppDatabase extends _$AppDatabase {
       defaultSourcePriorities[group.name]!;
 
   @override
-  int get schemaVersion => 74;
+  int get schemaVersion => 75;
 
   Future<void> saveHeartRateSamples(List<TimedHeartRate> samples) async {
     if (samples.isEmpty) return;
@@ -3699,6 +3743,10 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 73) await m.createTable(strengthExerciseNotes);
       if (from < 74) await m.createTable(coachMessages);
+      if (from < 75) {
+        await m.createTable(gear);
+        await m.createTable(activityGear);
+      }
     },
   );
 

@@ -51207,6 +51207,889 @@ class MediaItemsCompanion extends UpdateCompanion<MediaItem> {
   }
 }
 
+class $GearTable extends Gear with TableInfo<$GearTable, GearRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GearTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sportsJsonMeta = const VerificationMeta(
+    'sportsJson',
+  );
+  @override
+  late final GeneratedColumn<String> sportsJson = GeneratedColumn<String>(
+    'sports_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _isDefaultMeta = const VerificationMeta(
+    'isDefault',
+  );
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+    'is_default',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_default" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _startKmMeta = const VerificationMeta(
+    'startKm',
+  );
+  @override
+  late final GeneratedColumn<double> startKm = GeneratedColumn<double>(
+    'start_km',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _retireAtKmMeta = const VerificationMeta(
+    'retireAtKm',
+  );
+  @override
+  late final GeneratedColumn<double> retireAtKm = GeneratedColumn<double>(
+    'retire_at_km',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _firstUsedMeta = const VerificationMeta(
+    'firstUsed',
+  );
+  @override
+  late final GeneratedColumn<DateTime> firstUsed = GeneratedColumn<DateTime>(
+    'first_used',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _retiredAtMeta = const VerificationMeta(
+    'retiredAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> retiredAt = GeneratedColumn<DateTime>(
+    'retired_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    name,
+    brand,
+    sportsJson,
+    isDefault,
+    startKm,
+    retireAtKm,
+    firstUsed,
+    retiredAt,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'gear';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GearRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('sports_json')) {
+      context.handle(
+        _sportsJsonMeta,
+        sportsJson.isAcceptableOrUnknown(data['sports_json']!, _sportsJsonMeta),
+      );
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(
+        _isDefaultMeta,
+        isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta),
+      );
+    }
+    if (data.containsKey('start_km')) {
+      context.handle(
+        _startKmMeta,
+        startKm.isAcceptableOrUnknown(data['start_km']!, _startKmMeta),
+      );
+    }
+    if (data.containsKey('retire_at_km')) {
+      context.handle(
+        _retireAtKmMeta,
+        retireAtKm.isAcceptableOrUnknown(
+          data['retire_at_km']!,
+          _retireAtKmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('first_used')) {
+      context.handle(
+        _firstUsedMeta,
+        firstUsed.isAcceptableOrUnknown(data['first_used']!, _firstUsedMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_firstUsedMeta);
+    }
+    if (data.containsKey('retired_at')) {
+      context.handle(
+        _retiredAtMeta,
+        retiredAt.isAcceptableOrUnknown(data['retired_at']!, _retiredAtMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GearRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GearRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      ),
+      sportsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sports_json'],
+      )!,
+      isDefault: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_default'],
+      )!,
+      startKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}start_km'],
+      )!,
+      retireAtKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}retire_at_km'],
+      ),
+      firstUsed: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}first_used'],
+      )!,
+      retiredAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}retired_at'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $GearTable createAlias(String alias) {
+    return $GearTable(attachedDatabase, alias);
+  }
+}
+
+class GearRow extends DataClass implements Insertable<GearRow> {
+  final String id;
+
+  /// `shoes`, `bike` or `other`.
+  final String kind;
+  final String name;
+  final String? brand;
+
+  /// Sport keys it is used for, as a JSON list.
+  final String sportsJson;
+
+  /// Whether activities of its sports count for it unless linked elsewhere.
+  final bool isDefault;
+
+  /// Kilometres it had before Fjelia knew it.
+  final double startKm;
+
+  /// The distance at which to replace it, if the athlete set one.
+  final double? retireAtKm;
+  final DateTime firstUsed;
+  final DateTime? retiredAt;
+  final String? notes;
+  const GearRow({
+    required this.id,
+    required this.kind,
+    required this.name,
+    this.brand,
+    required this.sportsJson,
+    required this.isDefault,
+    required this.startKm,
+    this.retireAtKm,
+    required this.firstUsed,
+    this.retiredAt,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['kind'] = Variable<String>(kind);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    map['sports_json'] = Variable<String>(sportsJson);
+    map['is_default'] = Variable<bool>(isDefault);
+    map['start_km'] = Variable<double>(startKm);
+    if (!nullToAbsent || retireAtKm != null) {
+      map['retire_at_km'] = Variable<double>(retireAtKm);
+    }
+    map['first_used'] = Variable<DateTime>(firstUsed);
+    if (!nullToAbsent || retiredAt != null) {
+      map['retired_at'] = Variable<DateTime>(retiredAt);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  GearCompanion toCompanion(bool nullToAbsent) {
+    return GearCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      name: Value(name),
+      brand: brand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(brand),
+      sportsJson: Value(sportsJson),
+      isDefault: Value(isDefault),
+      startKm: Value(startKm),
+      retireAtKm: retireAtKm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retireAtKm),
+      firstUsed: Value(firstUsed),
+      retiredAt: retiredAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(retiredAt),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory GearRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GearRow(
+      id: serializer.fromJson<String>(json['id']),
+      kind: serializer.fromJson<String>(json['kind']),
+      name: serializer.fromJson<String>(json['name']),
+      brand: serializer.fromJson<String?>(json['brand']),
+      sportsJson: serializer.fromJson<String>(json['sportsJson']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      startKm: serializer.fromJson<double>(json['startKm']),
+      retireAtKm: serializer.fromJson<double?>(json['retireAtKm']),
+      firstUsed: serializer.fromJson<DateTime>(json['firstUsed']),
+      retiredAt: serializer.fromJson<DateTime?>(json['retiredAt']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(kind),
+      'name': serializer.toJson<String>(name),
+      'brand': serializer.toJson<String?>(brand),
+      'sportsJson': serializer.toJson<String>(sportsJson),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'startKm': serializer.toJson<double>(startKm),
+      'retireAtKm': serializer.toJson<double?>(retireAtKm),
+      'firstUsed': serializer.toJson<DateTime>(firstUsed),
+      'retiredAt': serializer.toJson<DateTime?>(retiredAt),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  GearRow copyWith({
+    String? id,
+    String? kind,
+    String? name,
+    Value<String?> brand = const Value.absent(),
+    String? sportsJson,
+    bool? isDefault,
+    double? startKm,
+    Value<double?> retireAtKm = const Value.absent(),
+    DateTime? firstUsed,
+    Value<DateTime?> retiredAt = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+  }) => GearRow(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    name: name ?? this.name,
+    brand: brand.present ? brand.value : this.brand,
+    sportsJson: sportsJson ?? this.sportsJson,
+    isDefault: isDefault ?? this.isDefault,
+    startKm: startKm ?? this.startKm,
+    retireAtKm: retireAtKm.present ? retireAtKm.value : this.retireAtKm,
+    firstUsed: firstUsed ?? this.firstUsed,
+    retiredAt: retiredAt.present ? retiredAt.value : this.retiredAt,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  GearRow copyWithCompanion(GearCompanion data) {
+    return GearRow(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      name: data.name.present ? data.name.value : this.name,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      sportsJson: data.sportsJson.present
+          ? data.sportsJson.value
+          : this.sportsJson,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      startKm: data.startKm.present ? data.startKm.value : this.startKm,
+      retireAtKm: data.retireAtKm.present
+          ? data.retireAtKm.value
+          : this.retireAtKm,
+      firstUsed: data.firstUsed.present ? data.firstUsed.value : this.firstUsed,
+      retiredAt: data.retiredAt.present ? data.retiredAt.value : this.retiredAt,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GearRow(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('sportsJson: $sportsJson, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('startKm: $startKm, ')
+          ..write('retireAtKm: $retireAtKm, ')
+          ..write('firstUsed: $firstUsed, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    name,
+    brand,
+    sportsJson,
+    isDefault,
+    startKm,
+    retireAtKm,
+    firstUsed,
+    retiredAt,
+    notes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GearRow &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.name == this.name &&
+          other.brand == this.brand &&
+          other.sportsJson == this.sportsJson &&
+          other.isDefault == this.isDefault &&
+          other.startKm == this.startKm &&
+          other.retireAtKm == this.retireAtKm &&
+          other.firstUsed == this.firstUsed &&
+          other.retiredAt == this.retiredAt &&
+          other.notes == this.notes);
+}
+
+class GearCompanion extends UpdateCompanion<GearRow> {
+  final Value<String> id;
+  final Value<String> kind;
+  final Value<String> name;
+  final Value<String?> brand;
+  final Value<String> sportsJson;
+  final Value<bool> isDefault;
+  final Value<double> startKm;
+  final Value<double?> retireAtKm;
+  final Value<DateTime> firstUsed;
+  final Value<DateTime?> retiredAt;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const GearCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.name = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.sportsJson = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.startKm = const Value.absent(),
+    this.retireAtKm = const Value.absent(),
+    this.firstUsed = const Value.absent(),
+    this.retiredAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GearCompanion.insert({
+    required String id,
+    required String kind,
+    required String name,
+    this.brand = const Value.absent(),
+    this.sportsJson = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.startKm = const Value.absent(),
+    this.retireAtKm = const Value.absent(),
+    required DateTime firstUsed,
+    this.retiredAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       name = Value(name),
+       firstUsed = Value(firstUsed);
+  static Insertable<GearRow> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<String>? name,
+    Expression<String>? brand,
+    Expression<String>? sportsJson,
+    Expression<bool>? isDefault,
+    Expression<double>? startKm,
+    Expression<double>? retireAtKm,
+    Expression<DateTime>? firstUsed,
+    Expression<DateTime>? retiredAt,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (name != null) 'name': name,
+      if (brand != null) 'brand': brand,
+      if (sportsJson != null) 'sports_json': sportsJson,
+      if (isDefault != null) 'is_default': isDefault,
+      if (startKm != null) 'start_km': startKm,
+      if (retireAtKm != null) 'retire_at_km': retireAtKm,
+      if (firstUsed != null) 'first_used': firstUsed,
+      if (retiredAt != null) 'retired_at': retiredAt,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GearCompanion copyWith({
+    Value<String>? id,
+    Value<String>? kind,
+    Value<String>? name,
+    Value<String?>? brand,
+    Value<String>? sportsJson,
+    Value<bool>? isDefault,
+    Value<double>? startKm,
+    Value<double?>? retireAtKm,
+    Value<DateTime>? firstUsed,
+    Value<DateTime?>? retiredAt,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return GearCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      name: name ?? this.name,
+      brand: brand ?? this.brand,
+      sportsJson: sportsJson ?? this.sportsJson,
+      isDefault: isDefault ?? this.isDefault,
+      startKm: startKm ?? this.startKm,
+      retireAtKm: retireAtKm ?? this.retireAtKm,
+      firstUsed: firstUsed ?? this.firstUsed,
+      retiredAt: retiredAt ?? this.retiredAt,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (sportsJson.present) {
+      map['sports_json'] = Variable<String>(sportsJson.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (startKm.present) {
+      map['start_km'] = Variable<double>(startKm.value);
+    }
+    if (retireAtKm.present) {
+      map['retire_at_km'] = Variable<double>(retireAtKm.value);
+    }
+    if (firstUsed.present) {
+      map['first_used'] = Variable<DateTime>(firstUsed.value);
+    }
+    if (retiredAt.present) {
+      map['retired_at'] = Variable<DateTime>(retiredAt.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GearCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('sportsJson: $sportsJson, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('startKm: $startKm, ')
+          ..write('retireAtKm: $retireAtKm, ')
+          ..write('firstUsed: $firstUsed, ')
+          ..write('retiredAt: $retiredAt, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ActivityGearTable extends ActivityGear
+    with TableInfo<$ActivityGearTable, ActivityGearRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ActivityGearTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _activityIdMeta = const VerificationMeta(
+    'activityId',
+  );
+  @override
+  late final GeneratedColumn<String> activityId = GeneratedColumn<String>(
+    'activity_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _gearIdMeta = const VerificationMeta('gearId');
+  @override
+  late final GeneratedColumn<String> gearId = GeneratedColumn<String>(
+    'gear_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [activityId, gearId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'activity_gear';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ActivityGearRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('activity_id')) {
+      context.handle(
+        _activityIdMeta,
+        activityId.isAcceptableOrUnknown(data['activity_id']!, _activityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_activityIdMeta);
+    }
+    if (data.containsKey('gear_id')) {
+      context.handle(
+        _gearIdMeta,
+        gearId.isAcceptableOrUnknown(data['gear_id']!, _gearIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_gearIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {activityId};
+  @override
+  ActivityGearRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ActivityGearRow(
+      activityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}activity_id'],
+      )!,
+      gearId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gear_id'],
+      )!,
+    );
+  }
+
+  @override
+  $ActivityGearTable createAlias(String alias) {
+    return $ActivityGearTable(attachedDatabase, alias);
+  }
+}
+
+class ActivityGearRow extends DataClass implements Insertable<ActivityGearRow> {
+  final String activityId;
+  final String gearId;
+  const ActivityGearRow({required this.activityId, required this.gearId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['activity_id'] = Variable<String>(activityId);
+    map['gear_id'] = Variable<String>(gearId);
+    return map;
+  }
+
+  ActivityGearCompanion toCompanion(bool nullToAbsent) {
+    return ActivityGearCompanion(
+      activityId: Value(activityId),
+      gearId: Value(gearId),
+    );
+  }
+
+  factory ActivityGearRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ActivityGearRow(
+      activityId: serializer.fromJson<String>(json['activityId']),
+      gearId: serializer.fromJson<String>(json['gearId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'activityId': serializer.toJson<String>(activityId),
+      'gearId': serializer.toJson<String>(gearId),
+    };
+  }
+
+  ActivityGearRow copyWith({String? activityId, String? gearId}) =>
+      ActivityGearRow(
+        activityId: activityId ?? this.activityId,
+        gearId: gearId ?? this.gearId,
+      );
+  ActivityGearRow copyWithCompanion(ActivityGearCompanion data) {
+    return ActivityGearRow(
+      activityId: data.activityId.present
+          ? data.activityId.value
+          : this.activityId,
+      gearId: data.gearId.present ? data.gearId.value : this.gearId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActivityGearRow(')
+          ..write('activityId: $activityId, ')
+          ..write('gearId: $gearId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(activityId, gearId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ActivityGearRow &&
+          other.activityId == this.activityId &&
+          other.gearId == this.gearId);
+}
+
+class ActivityGearCompanion extends UpdateCompanion<ActivityGearRow> {
+  final Value<String> activityId;
+  final Value<String> gearId;
+  final Value<int> rowid;
+  const ActivityGearCompanion({
+    this.activityId = const Value.absent(),
+    this.gearId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ActivityGearCompanion.insert({
+    required String activityId,
+    required String gearId,
+    this.rowid = const Value.absent(),
+  }) : activityId = Value(activityId),
+       gearId = Value(gearId);
+  static Insertable<ActivityGearRow> custom({
+    Expression<String>? activityId,
+    Expression<String>? gearId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (activityId != null) 'activity_id': activityId,
+      if (gearId != null) 'gear_id': gearId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ActivityGearCompanion copyWith({
+    Value<String>? activityId,
+    Value<String>? gearId,
+    Value<int>? rowid,
+  }) {
+    return ActivityGearCompanion(
+      activityId: activityId ?? this.activityId,
+      gearId: gearId ?? this.gearId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (activityId.present) {
+      map['activity_id'] = Variable<String>(activityId.value);
+    }
+    if (gearId.present) {
+      map['gear_id'] = Variable<String>(gearId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ActivityGearCompanion(')
+          ..write('activityId: $activityId, ')
+          ..write('gearId: $gearId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CoachMemoriesTable extends CoachMemories
     with TableInfo<$CoachMemoriesTable, CoachMemory> {
   @override
@@ -52101,6 +52984,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $MediaItemsTable mediaItems = $MediaItemsTable(this);
+  late final $GearTable gear = $GearTable(this);
+  late final $ActivityGearTable activityGear = $ActivityGearTable(this);
   late final $CoachMemoriesTable coachMemories = $CoachMemoriesTable(this);
   late final $ProReportsTable proReports = $ProReportsTable(this);
   @override
@@ -52178,6 +53063,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     workoutTemplates,
     dfaAlpha1Results,
     mediaItems,
+    gear,
+    activityGear,
     coachMemories,
     proReports,
   ];
@@ -77321,6 +78208,477 @@ typedef $$MediaItemsTableProcessedTableManager =
       MediaItem,
       PrefetchHooks Function()
     >;
+typedef $$GearTableCreateCompanionBuilder = GearCompanion Function({
+  required String id,
+  required String kind,
+  required String name,
+  Value<String?> brand,
+  Value<String> sportsJson,
+  Value<bool> isDefault,
+  Value<double> startKm,
+  Value<double?> retireAtKm,
+  required DateTime firstUsed,
+  Value<DateTime?> retiredAt,
+  Value<String?> notes,
+  Value<int> rowid,
+});
+typedef $$GearTableUpdateCompanionBuilder = GearCompanion Function({
+  Value<String> id,
+  Value<String> kind,
+  Value<String> name,
+  Value<String?> brand,
+  Value<String> sportsJson,
+  Value<bool> isDefault,
+  Value<double> startKm,
+  Value<double?> retireAtKm,
+  Value<DateTime> firstUsed,
+  Value<DateTime?> retiredAt,
+  Value<String?> notes,
+  Value<int> rowid,
+});
+
+class $$GearTableFilterComposer extends Composer<_$AppDatabase, $GearTable> {
+  $$GearTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sportsJson => $composableBuilder(
+    column: $table.sportsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get startKm => $composableBuilder(
+    column: $table.startKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get retireAtKm => $composableBuilder(
+    column: $table.retireAtKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get firstUsed => $composableBuilder(
+    column: $table.firstUsed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GearTableOrderingComposer extends Composer<_$AppDatabase, $GearTable> {
+  $$GearTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sportsJson => $composableBuilder(
+    column: $table.sportsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+    column: $table.isDefault,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get startKm => $composableBuilder(
+    column: $table.startKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get retireAtKm => $composableBuilder(
+    column: $table.retireAtKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get firstUsed => $composableBuilder(
+    column: $table.firstUsed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get retiredAt => $composableBuilder(
+    column: $table.retiredAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GearTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GearTable> {
+  $$GearTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get sportsJson => $composableBuilder(
+    column: $table.sportsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<double> get startKm =>
+      $composableBuilder(column: $table.startKm, builder: (column) => column);
+
+  GeneratedColumn<double> get retireAtKm => $composableBuilder(
+    column: $table.retireAtKm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get firstUsed =>
+      $composableBuilder(column: $table.firstUsed, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get retiredAt =>
+      $composableBuilder(column: $table.retiredAt, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+}
+
+class $$GearTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GearTable,
+          GearRow,
+          $$GearTableFilterComposer,
+          $$GearTableOrderingComposer,
+          $$GearTableAnnotationComposer,
+          $$GearTableCreateCompanionBuilder,
+          $$GearTableUpdateCompanionBuilder,
+          (GearRow, BaseReferences<_$AppDatabase, $GearTable, GearRow>),
+          GearRow,
+          PrefetchHooks Function()
+        > {
+  $$GearTableTableManager(_$AppDatabase db, $GearTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GearTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GearTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GearTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String> sportsJson = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<double> startKm = const Value.absent(),
+                Value<double?> retireAtKm = const Value.absent(),
+                Value<DateTime> firstUsed = const Value.absent(),
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GearCompanion(
+                id: id,
+                kind: kind,
+                name: name,
+                brand: brand,
+                sportsJson: sportsJson,
+                isDefault: isDefault,
+                startKm: startKm,
+                retireAtKm: retireAtKm,
+                firstUsed: firstUsed,
+                retiredAt: retiredAt,
+                notes: notes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String kind,
+                required String name,
+                Value<String?> brand = const Value.absent(),
+                Value<String> sportsJson = const Value.absent(),
+                Value<bool> isDefault = const Value.absent(),
+                Value<double> startKm = const Value.absent(),
+                Value<double?> retireAtKm = const Value.absent(),
+                required DateTime firstUsed,
+                Value<DateTime?> retiredAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GearCompanion.insert(
+                id: id,
+                kind: kind,
+                name: name,
+                brand: brand,
+                sportsJson: sportsJson,
+                isDefault: isDefault,
+                startKm: startKm,
+                retireAtKm: retireAtKm,
+                firstUsed: firstUsed,
+                retiredAt: retiredAt,
+                notes: notes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GearTable, GearRow>(table),
+                  BaseReferences<_$AppDatabase, $GearTable, GearRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GearTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GearTable,
+      GearRow,
+      $$GearTableFilterComposer,
+      $$GearTableOrderingComposer,
+      $$GearTableAnnotationComposer,
+      $$GearTableCreateCompanionBuilder,
+      $$GearTableUpdateCompanionBuilder,
+      (GearRow, BaseReferences<_$AppDatabase, $GearTable, GearRow>),
+      GearRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ActivityGearTableCreateCompanionBuilder =
+    ActivityGearCompanion Function({
+      required String activityId,
+      required String gearId,
+      Value<int> rowid,
+    });
+typedef $$ActivityGearTableUpdateCompanionBuilder =
+    ActivityGearCompanion Function({
+      Value<String> activityId,
+      Value<String> gearId,
+      Value<int> rowid,
+    });
+
+class $$ActivityGearTableFilterComposer
+    extends Composer<_$AppDatabase, $ActivityGearTable> {
+  $$ActivityGearTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get activityId => $composableBuilder(
+    column: $table.activityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gearId => $composableBuilder(
+    column: $table.gearId,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ActivityGearTableOrderingComposer
+    extends Composer<_$AppDatabase, $ActivityGearTable> {
+  $$ActivityGearTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get activityId => $composableBuilder(
+    column: $table.activityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get gearId => $composableBuilder(
+    column: $table.gearId,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ActivityGearTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ActivityGearTable> {
+  $$ActivityGearTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get activityId => $composableBuilder(
+    column: $table.activityId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get gearId =>
+      $composableBuilder(column: $table.gearId, builder: (column) => column);
+}
+
+class $$ActivityGearTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ActivityGearTable,
+          ActivityGearRow,
+          $$ActivityGearTableFilterComposer,
+          $$ActivityGearTableOrderingComposer,
+          $$ActivityGearTableAnnotationComposer,
+          $$ActivityGearTableCreateCompanionBuilder,
+          $$ActivityGearTableUpdateCompanionBuilder,
+          (
+            ActivityGearRow,
+            BaseReferences<_$AppDatabase, $ActivityGearTable, ActivityGearRow>,
+          ),
+          ActivityGearRow,
+          PrefetchHooks Function()
+        > {
+  $$ActivityGearTableTableManager(_$AppDatabase db, $ActivityGearTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ActivityGearTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ActivityGearTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ActivityGearTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> activityId = const Value.absent(),
+                Value<String> gearId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ActivityGearCompanion(
+                activityId: activityId,
+                gearId: gearId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String activityId,
+                required String gearId,
+                Value<int> rowid = const Value.absent(),
+              }) => ActivityGearCompanion.insert(
+                activityId: activityId,
+                gearId: gearId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ActivityGearTable, ActivityGearRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $ActivityGearTable,
+                    ActivityGearRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ActivityGearTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ActivityGearTable,
+      ActivityGearRow,
+      $$ActivityGearTableFilterComposer,
+      $$ActivityGearTableOrderingComposer,
+      $$ActivityGearTableAnnotationComposer,
+      $$ActivityGearTableCreateCompanionBuilder,
+      $$ActivityGearTableUpdateCompanionBuilder,
+      (
+        ActivityGearRow,
+        BaseReferences<_$AppDatabase, $ActivityGearTable, ActivityGearRow>,
+      ),
+      ActivityGearRow,
+      PrefetchHooks Function()
+    >;
 typedef $$CoachMemoriesTableCreateCompanionBuilder =
     CoachMemoriesCompanion Function({
       required String id,
@@ -77933,6 +79291,9 @@ class $AppDatabaseManager {
       $$DfaAlpha1ResultsTableTableManager(_db, _db.dfaAlpha1Results);
   $$MediaItemsTableTableManager get mediaItems =>
       $$MediaItemsTableTableManager(_db, _db.mediaItems);
+  $$GearTableTableManager get gear => $$GearTableTableManager(_db, _db.gear);
+  $$ActivityGearTableTableManager get activityGear =>
+      $$ActivityGearTableTableManager(_db, _db.activityGear);
   $$CoachMemoriesTableTableManager get coachMemories =>
       $$CoachMemoriesTableTableManager(_db, _db.coachMemories);
   $$ProReportsTableTableManager get proReports =>
