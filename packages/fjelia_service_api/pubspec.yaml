@@ -1,0 +1,9 @@
+name: fjelia_service_api
+description: Public interfaces of the optional private Fjelia service package (Aktiia / Hilo, clinical ECG rules).
+publish_to: 'none'
+version: 0.1.0
+
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0

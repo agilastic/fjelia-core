@@ -5,16 +5,35 @@ desktop app (`fjelia-desktop`) and the backend worker (`fjelia-service`).
 
 | Package | Contents |
 | --- | --- |
-| `packages/fjelia_core` | Domain models and algorithms: zones, load and form, HRV, ECG, sleep staging, FIT/GPX/TCX parsing, scores |
+| `packages/fjelia_core` | Domain models and algorithms: zones, load and form, HRV, ECG, sleep staging, FIT/GPX/TCX parsing, scores, planning, AI Coach context |
+| `packages/fjelia_service_api` | Public interfaces of the optional private service package; the apps' public stub and the private implementation both build on it |
 
 `fjelia_core` depends on the Dart SDK and pure-Dart packages only.
 `test/architecture/core_boundary_test.dart` enforces this.
 
-## Layout on disk
+## Using it
 
-Check out next to the app; the app depends on
-`../fjelia-core/packages/fjelia_core`, and `fjelia_core` still takes
-`fjelia_service_api` from `../fjelia/packages/` until that package moves here.
+The apps depend on a tag:
+
+```yaml
+fjelia_core:
+  git:
+    url: https://github.com/agilastic/fjelia-core.git
+    ref: v0.2.0
+    path: packages/fjelia_core
+```
+
+(the same with `path: packages/fjelia_service_api`). To work on the core and
+an app together, check both out side by side and point the app at the
+checkout in its git-ignored `pubspec_overrides.yaml`:
+
+```yaml
+dependency_overrides:
+  fjelia_core:
+    path: ../fjelia-core/packages/fjelia_core
+  fjelia_service_api:
+    path: ../fjelia-core/packages/fjelia_service_api
+```
 
 ## Commands
 

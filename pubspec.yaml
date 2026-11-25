@@ -6,3 +6,4 @@ environment:
 
 workspace:
   - packages/fjelia_core
+  - packages/fjelia_service_api

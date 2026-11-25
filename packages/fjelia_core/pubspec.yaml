@@ -14,10 +14,8 @@ dependencies:
   intl: ^0.20.2
   uuid: ^4.6.0
   xml: ^6.5.0
-  # Moves into this repository in a later wave; until then it comes from
-  # the app checkout next to this one.
   fjelia_service_api:
-    path: ../../../fjelia/packages/fjelia_service_api
+    path: ../fjelia_service_api
 
 dev_dependencies:
   lints: ^6.0.0
