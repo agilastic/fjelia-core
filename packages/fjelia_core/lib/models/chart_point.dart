@@ -3,4 +3,3 @@ class ChartPoint {
   final DateTime at;
   final double value;
 }
-

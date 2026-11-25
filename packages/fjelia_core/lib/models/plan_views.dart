@@ -23,6 +23,12 @@ abstract interface class PlannedSessionView {
   String? get goalObjective;
   String? get sessionDateOriginal;
   int? get actualDurationMin;
+  String? get adaptationTrigger;
+  String? get garminAlternativeId;
+  String? get garminWorkoutId;
+  String get phase;
+  String? get subType;
+  bool get tspAdjusted;
 }
 
 /// A recorded activity.
@@ -53,6 +59,7 @@ abstract interface class ActivityView {
   int? get plannedDurationSeconds;
   double? get plannedDistanceMeters;
   String? get plannedStepsJson;
+  String? get athleteNote;
 }
 
 /// A race or event goal.

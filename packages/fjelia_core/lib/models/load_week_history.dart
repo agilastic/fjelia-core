@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:fjelia_service_api/fjelia_service_api.dart';
 
 import '../models/plan_views.dart';
+
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_core/services/hr_zone_model.dart';
 

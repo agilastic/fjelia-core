@@ -31,7 +31,8 @@ class HeartRateStatistics {
     var integral = 0.0;
     for (var i = 1; i < times.length; i++) {
       final duration = times[i] - times[i - 1];
-      if (duration <= 0 || duration > const Duration(minutes: 5).inMilliseconds) {
+      if (duration <= 0 ||
+          duration > const Duration(minutes: 5).inMilliseconds) {
         continue;
       }
       integral += (unique[times[i - 1]]! + unique[times[i]]!) / 2 * duration;

@@ -60,21 +60,21 @@ class HeatWorkoutContextData {
   final String? rawJson;
 
   Map<String, dynamic> toJson() => {
-        'activityId': activityId,
-        'activityStart': activityStart.toIso8601String(),
-        'source': source,
-        'isOutdoor': isOutdoor,
-        'qualifies': qualifies,
-        'durationMinutes': durationMinutes,
-        'temperatureC': temperatureC,
-        'humidityPct': humidityPct,
-        'pressureHpa': pressureHpa,
-        'wetBulbC': wetBulbC,
-        'scoreBefore': scoreBefore,
-        'scoreAfter': scoreAfter,
-        'weatherCacheKey': weatherCacheKey,
-        'rawJson': rawJson,
-      };
+    'activityId': activityId,
+    'activityStart': activityStart.toIso8601String(),
+    'source': source,
+    'isOutdoor': isOutdoor,
+    'qualifies': qualifies,
+    'durationMinutes': durationMinutes,
+    'temperatureC': temperatureC,
+    'humidityPct': humidityPct,
+    'pressureHpa': pressureHpa,
+    'wetBulbC': wetBulbC,
+    'scoreBefore': scoreBefore,
+    'scoreAfter': scoreAfter,
+    'weatherCacheKey': weatherCacheKey,
+    'rawJson': rawJson,
+  };
 }
 
 class WeatherSnapshotData {
@@ -103,15 +103,15 @@ class WeatherSnapshotData {
   final String rawJson;
 
   Map<String, dynamic> toJson() => {
-        'cacheKey': cacheKey,
-        'source': source,
-        'observedAt': observedAt.toIso8601String(),
-        'latitude': latitude,
-        'longitude': longitude,
-        'temperatureC': temperatureC,
-        'humidityPct': humidityPct,
-        'pressureHpa': pressureHpa,
-        'wetBulbC': wetBulbC,
-        'rawJson': rawJson,
-      };
+    'cacheKey': cacheKey,
+    'source': source,
+    'observedAt': observedAt.toIso8601String(),
+    'latitude': latitude,
+    'longitude': longitude,
+    'temperatureC': temperatureC,
+    'humidityPct': humidityPct,
+    'pressureHpa': pressureHpa,
+    'wetBulbC': wetBulbC,
+    'rawJson': rawJson,
+  };
 }

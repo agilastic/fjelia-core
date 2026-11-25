@@ -50,9 +50,9 @@ List<IndoorStep> indoorSteps(List<Map<String, dynamic>> steps) {
       if (item is! Map || out.length >= 200) continue;
       if (item['workoutSteps'] is List) {
         final times =
-            positive(
-              item['numberOfIterations'] ?? item['endConditionValue'],
-            )?.round().clamp(1, 100) ??
+            positive(item['numberOfIterations'] ?? item['endConditionValue'])
+                ?.round()
+                .clamp(1, 100) ??
             1;
         for (var i = 0; i < times && out.length < 200; i++) {
           read(item['workoutSteps'] as List, depth + 1);
