@@ -38,9 +38,17 @@ class SyncServer {
     required this.name,
     this.port = defaultSyncPort,
     this.offerLifetime = const Duration(minutes: 5),
+    this.databaseOf,
   });
 
+  /// Where the paired devices are kept, and the data of the athlete's own
+  /// devices.
   final AppDatabase db;
+
+  /// The database a peer's data lives in; on a coach's computer each
+  /// athlete has their own. Without it, everything is in [db].
+  final AppDatabase Function(SyncPeer peer)? databaseOf;
+  AppDatabase _dataOf(SyncPeer peer) => databaseOf?.call(peer) ?? db;
   final DeviceIdentity identity;
   final String name;
   final int port;
@@ -48,6 +56,7 @@ class SyncServer {
 
   HttpServer? _server;
   String? _token;
+  var _role = PeerRole.self;
   DateTime? _tokenExpires;
   final _events = StreamController<SyncEvent>.broadcast();
 
@@ -70,8 +79,13 @@ class SyncServer {
     _server = null;
   }
 
-  /// A new pairing code; an earlier one stops working.
-  Future<PairingOffer> offerPairing({List<String>? hosts}) async {
+  /// A new pairing code; an earlier one stops working. The device that
+  /// pairs with it is the athlete's own, or with [role] an athlete's.
+  Future<PairingOffer> offerPairing({
+    List<String>? hosts,
+    PeerRole role = PeerRole.self,
+  }) async {
+    _role = role;
     _token = randomToken(16);
     _tokenExpires = DateTime.now().add(offerLifetime);
     return PairingOffer(
@@ -104,7 +118,7 @@ class SyncServer {
           await writeJson(request.response, 200, {
             'epoch': peer.peerLogEpoch,
             'seq': peer.receivedSeq,
-            'schema': db.schemaVersion,
+            'schema': _dataOf(peer).schemaVersion,
           });
         case ('POST', changesPath):
           await _receive(request, peer);
@@ -146,6 +160,7 @@ class SyncServer {
       // What this device would send back; the first release sends nothing.
       categories: _athleteCategories,
       secretHash: sha256Hex(secret),
+      role: _role,
     );
     await db.saveSyncPeer(peer);
     _events.add(PeerPaired(peer));
@@ -169,10 +184,11 @@ class SyncServer {
 
   Future<void> _receive(HttpRequest request, SyncPeer peer) async {
     final body = await readJson(request, maxBytes: 256 << 20) as Map;
-    if (body['schema'] != db.schemaVersion) {
+    final data = _dataOf(peer);
+    if (body['schema'] != data.schemaVersion) {
       return writeJson(request.response, 409, {
         'error': 'schema',
-        'schema': db.schemaVersion,
+        'schema': data.schemaVersion,
       });
     }
     final epoch = body['epoch'] as String;
@@ -192,19 +208,18 @@ class SyncServer {
       });
     }
     // A new log from the phone resends what it has; what it dropped would
-    // stay here. The first release's desktop mirrors one phone, so it
-    // starts its copy again.
+    // stay here, so what came from that phone starts again.
     final restarted =
         peer.peerLogEpoch != null && epoch != peer.peerLogEpoch && from == 0;
-    await db.transaction(() async {
-      if (restarted) await db.clearSyncedData(origin: peer.deviceId);
-      await db.applySyncChanges(changes, fromDevice: peer.deviceId);
-      await db.setSyncPeerCursor(
-        peer.deviceId,
-        epoch,
-        changes.isEmpty ? from : changes.last.seq,
-      );
-    });
+    if (restarted) await data.clearSyncedData(origin: peer.deviceId);
+    await data.applySyncChanges(changes, fromDevice: peer.deviceId);
+    // After the changes: a crash in between sends them again, and taking a
+    // change twice changes nothing.
+    await db.setSyncPeerCursor(
+      peer.deviceId,
+      epoch,
+      changes.isEmpty ? from : changes.last.seq,
+    );
     _events.add(ChangesReceived(peer, changes.length));
     await writeJson(request.response, 200, {
       'seq': changes.isEmpty ? from : changes.last.seq,
@@ -216,10 +231,11 @@ class SyncServer {
   /// epoch starts again at 0.
   Future<void> _send(HttpRequest request, SyncPeer peer) async {
     final q = request.uri.queryParameters;
-    final epoch = await db.syncLogEpoch();
+    final data = _dataOf(peer);
+    final epoch = await data.syncLogEpoch();
     final after = q['epoch'] == epoch ? int.tryParse(q['after'] ?? '') ?? 0 : 0;
     final limit = (int.tryParse(q['limit'] ?? '') ?? 200).clamp(1, 1000);
-    final changes = await db.syncChangesSince(
+    final changes = await data.syncChangesSince(
       after,
       limit: limit,
       categories: peer.categories,

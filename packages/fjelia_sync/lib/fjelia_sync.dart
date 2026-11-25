@@ -8,7 +8,7 @@
 library;
 
 export 'package:fjelia_core/services/sync/pairing.dart';
-export 'package:fjelia_data/sync.dart' show SyncPeer, SyncStore;
+export 'package:fjelia_data/sync.dart' show PeerRole, SyncPeer, SyncStore;
 
 export 'src/client.dart';
 export 'src/identity.dart' show DeviceIdentity, SecretStore;

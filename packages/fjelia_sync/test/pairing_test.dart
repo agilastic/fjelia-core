@@ -277,6 +277,32 @@ void main() {
     },
   );
 
+  test('a coach keeps each athlete in their own database', () async {
+    final athleteDb = AppDatabase(NativeDatabase.memory());
+    addTearDown(athleteDb.close);
+    await server.stop();
+    server = SyncServer(
+      db: desktopDb,
+      identity: desktopIdentity,
+      name: 'Coach Mac',
+      port: 0,
+      databaseOf: (peer) =>
+          peer.role == PeerRole.athlete ? athleteDb : desktopDb,
+    );
+    await server.start();
+    await run('a1');
+    final coach = await phone.pair(
+      await server.offerPairing(hosts: ['127.0.0.1'], role: PeerRole.athlete),
+    );
+    expect(await phone.push(coach), 1);
+    expect((await desktopDb.syncPeers()).single.role, PeerRole.athlete);
+    expect(await desktopDb.select(desktopDb.activityRecords).get(), isEmpty);
+    expect(
+      await athleteDb.select(athleteDb.activityRecords).get(),
+      hasLength(1),
+    );
+  });
+
   test('unpairing ends it on both devices', () async {
     final desktop = await phone.pair(await offer());
     await phone.unpair(desktop);

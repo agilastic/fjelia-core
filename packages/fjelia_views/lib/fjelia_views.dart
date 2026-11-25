@@ -16,6 +16,7 @@ export 'src/gear.dart';
 export 'src/health.dart';
 export 'src/lab_tests.dart';
 export 'src/plan_edits.dart';
+export 'src/roster.dart';
 export 'src/season.dart';
 export 'src/sport_stats.dart';
 export 'src/today.dart';

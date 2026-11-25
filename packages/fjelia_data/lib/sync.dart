@@ -58,7 +58,12 @@ const _schema = [
 const _addedColumns = [
   ('sync_peers', 'secret_sha256', 'TEXT'),
   ('sync_peers', 'address', 'TEXT'),
+  ('sync_peers', 'role', "TEXT NOT NULL DEFAULT 'self'"),
 ];
+
+/// Whose device a peer is: the athlete's own, or (on a coach's computer)
+/// an athlete the coach looks after.
+enum PeerRole { self, athlete }
 
 /// A device paired with this one.
 class SyncPeer {
@@ -72,7 +77,10 @@ class SyncPeer {
     this.address,
     this.peerLogEpoch,
     this.receivedSeq = 0,
+    this.role = PeerRole.self,
   });
+
+  final PeerRole role;
 
   final String deviceId;
   final String name;
@@ -244,7 +252,7 @@ extension SyncStore on AppDatabase {
   Future<void> saveSyncPeer(SyncPeer peer) => customStatement(
     'INSERT OR REPLACE INTO sync_peers (device_id, name, certificate_sha256, '
     'paired_at_ms, categories, peer_log_epoch, received_seq, secret_sha256, '
-    'address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'address, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       peer.deviceId,
       peer.name,
@@ -255,6 +263,7 @@ extension SyncStore on AppDatabase {
       peer.receivedSeq,
       peer.secretHash,
       peer.address,
+      peer.role.name,
     ],
   );
 
@@ -288,6 +297,9 @@ extension SyncStore on AppDatabase {
     address: r.readNullable<String>('address'),
     peerLogEpoch: r.readNullable<String>('peer_log_epoch'),
     receivedSeq: r.read<int>('received_seq'),
+    role:
+        PeerRole.values.asNameMap()[r.readNullable<String>('role')] ??
+        PeerRole.self,
   );
 
   /// Up to [limit] changes after [afterSeq] in [categories], each upsert
