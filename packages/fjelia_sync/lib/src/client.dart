@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' show log;
 import 'dart:io';
 
 import 'package:fjelia_core/services/sync/pairing.dart';
@@ -20,6 +21,7 @@ class SyncClient {
     required this.secrets,
     this.pageSize = 200,
     this.timeout = const Duration(seconds: 4),
+    this.locator,
   });
 
   final AppDatabase db;
@@ -28,6 +30,9 @@ class SyncClient {
   final SecretStore secrets;
   final int pageSize;
   final Duration timeout;
+
+  /// Finds a paired device whose address changed, such as by Bonjour.
+  final PeerLocator? locator;
 
   static String _secretKey(String deviceId) => 'fjelia.sync.secret.$deviceId';
 
@@ -81,13 +86,37 @@ class SyncClient {
   }
 
   /// Sends [peer] every change it does not have yet and returns how many.
-  /// [onPage] reports the number sent so far.
+  /// [onPage] reports the number sent so far. When the peer is not at its
+  /// last address any more, [locator] finds it by its device id and the new
+  /// address is kept.
   Future<int> push(SyncPeer peer, {void Function(int sent)? onPage}) async {
     final secret = await secrets.read(_secretKey(peer.deviceId));
-    final address = peer.address;
-    if (secret == null || address == null) {
-      throw const SyncRefused(401, 'unknown_device');
+    if (secret == null) throw const SyncRefused(401, 'unknown_device');
+    final known = peer.address;
+    if (known != null) {
+      try {
+        return await _pushTo(known, peer, secret, onPage);
+      } on SyncRefused {
+        rethrow; // the peer answered
+      } on Object catch (e) {
+        if (locator == null) rethrow;
+        log('[Sync] ${peer.name} not at $known ($e), looking for it');
+      }
     }
+    final found = await locator?.locate(peer.deviceId);
+    if (found == null || found == known) {
+      throw SocketException('${peer.name} is not on this network');
+    }
+    await db.setSyncPeerAddress(peer.deviceId, found);
+    return _pushTo(found, peer, secret, onPage);
+  }
+
+  Future<int> _pushTo(
+    String address,
+    SyncPeer peer,
+    String secret,
+    void Function(int sent)? onPage,
+  ) async {
     final base = Uri.parse('https://$address');
     final client = _client(peer.fingerprint);
     final headers = {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:fjelia_data/database.dart';
@@ -12,6 +14,16 @@ class MemoryStore implements SecretStore {
   Future<void> write(String key, String value) async => values[key] = value;
   @override
   Future<void> delete(String key) async => values.remove(key);
+}
+
+class FakeLocator implements PeerLocator {
+  String? address;
+  final asked = <String>[];
+  @override
+  Future<String?> locate(String deviceId) async {
+    asked.add(deviceId);
+    return address;
+  }
 }
 
 void main() {
@@ -174,6 +186,57 @@ void main() {
     expect(await phone.push(desktop), 1);
     final runs = await desktopDb.select(desktopDb.activityRecords).get();
     expect(runs.map((r) => r.activityId), ['b1']);
+  });
+
+  test('a computer that moved is found again by its device id', () async {
+    await run('a1');
+    final desktop = await phone.pair(await offer());
+    expect(await phone.push(desktop), 1);
+
+    // The computer comes back on another address (here: another port).
+    await server.stop();
+    server = SyncServer(
+      db: desktopDb,
+      identity: desktopIdentity,
+      name: 'Studio Mac',
+      port: 0,
+    );
+    await server.start();
+    final locator = FakeLocator()..address = '127.0.0.1:${server.boundPort}';
+    final located = SyncClient(
+      db: phoneDb,
+      identity: phoneIdentity,
+      name: 'iPhone',
+      secrets: phoneSecrets,
+      locator: locator,
+    );
+    await run('a2');
+    expect(await located.push((await phoneDb.syncPeer(desktop.deviceId))!), 1);
+    expect(locator.asked, [desktopIdentity.deviceId]);
+    expect(
+      (await phoneDb.syncPeer(desktop.deviceId))!.address,
+      locator.address,
+    );
+    // The next sync goes straight to the new address.
+    await run('a3');
+    expect(await located.push((await phoneDb.syncPeer(desktop.deviceId))!), 1);
+    expect(locator.asked, hasLength(1));
+    expect(await desktopRuns(), 3);
+  });
+
+  test('a computer that is not around stays an error', () async {
+    final desktop = await phone.pair(await offer());
+    await server.stop();
+    final lost = SyncClient(
+      db: phoneDb,
+      identity: phoneIdentity,
+      name: 'iPhone',
+      secrets: phoneSecrets,
+      locator: FakeLocator(),
+      timeout: const Duration(seconds: 1),
+    );
+    await expectLater(lost.push(desktop), throwsA(isA<SocketException>()));
+    await server.start(); // for tearDown
   });
 
   test('unpairing ends it on both devices', () async {

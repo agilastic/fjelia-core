@@ -11,6 +11,20 @@ const changesPath = '/v1/changes';
 
 const deviceHeader = 'x-fjelia-device';
 
+/// The Bonjour (DNS-SD) type a listening device advertises. Its TXT record
+/// carries [bonjourDeviceKey], the device id, so a phone finds the one it
+/// paired with whatever its address is now.
+const bonjourServiceType = '_fjelia-sync._tcp';
+const bonjourDeviceKey = 'id';
+
+/// Finds a paired device on the local network. The apps implement it with
+/// their platform's service discovery.
+abstract interface class PeerLocator {
+  /// `host:port` of the device [deviceId], or null when it is not found
+  /// in time.
+  Future<String?> locate(String deviceId);
+}
+
 /// Why a peer refused a request.
 class SyncRefused implements Exception {
   const SyncRefused(this.status, this.reason);

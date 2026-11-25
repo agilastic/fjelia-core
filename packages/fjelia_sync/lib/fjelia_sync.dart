@@ -12,5 +12,11 @@ export 'package:fjelia_data/sync.dart' show SyncPeer, SyncStore;
 
 export 'src/client.dart';
 export 'src/identity.dart' show DeviceIdentity, SecretStore;
-export 'src/protocol.dart' show SyncRefused, defaultSyncPort;
+export 'src/protocol.dart'
+    show
+        PeerLocator,
+        SyncRefused,
+        bonjourDeviceKey,
+        bonjourServiceType,
+        defaultSyncPort;
 export 'src/server.dart';
