@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fjelia_data/database.dart';
@@ -177,4 +180,66 @@ void main() {
     expect(r.seconds, 5400);
     expect(r.legs.first.arrival, closeTo(2700, 15));
   });
+
+  test('the crew card: when the runner is due and what to hand over', () async {
+    await RaceCourseEdits(db)
+        .setFromGpx('g1', gpx(), startAt: DateTime(2027, 3, 1, 8));
+    await RaceCourseEdits(db).setCheckpoints('g1', [
+      CourseCheckpoint(name: 'Top', km: 5, cutoff: DateTime(2027, 3, 1, 9)),
+    ]);
+    await run('flat', 0, 330);
+    await run('hill', 0.08, 480);
+    final view = (await loadRaceCourse(db, 'g1', now: now, texts: _Texts()))!;
+    final rows = crewCardRows(view)!;
+    expect(rows.map((r) => r.name), ['Top', 'Finish']);
+    expect(rows.first.clock, isNotNull);
+    // Under 75 minutes the Fuel planning gives no carbohydrate; the entry
+    // is there all the same.
+    expect(rows.first.handOver, isNotNull);
+    expect(rows.last.handOver, isNull);
+    final pdf = await crewCardPdf(
+      view,
+      _CrewTexts(),
+      regular: ByteData.sublistView(
+        File('fonts/NotoSans-Regular.ttf').readAsBytesSync(),
+      ),
+      bold: ByteData.sublistView(
+        File('fonts/NotoSans-Bold.ttf').readAsBytesSync(),
+      ),
+    );
+    expect(String.fromCharCodes(pdf!.take(5)), '%PDF-');
+    final out = Platform.environment['CREW_CARD_OUT'];
+    if (out != null) File(out).writeAsBytesSync(pdf);
+  });
+}
+
+class _CrewTexts implements CrewCardTexts {
+  @override
+  String get checkpoint => 'Checkpoint';
+  @override
+  String get km => 'km';
+  @override
+  String get upDown => 'Up / Down';
+  @override
+  String get arrival => 'Due';
+  @override
+  String get cutoff => 'Cut-off';
+  @override
+  String get handOver => 'Hand over for the next leg';
+  @override
+  String get finish => 'Finish';
+  @override
+  String start(String time) => 'Start $time';
+  @override
+  String finishRange(String time, String from, String to) =>
+      'Finish $time ($from–$to)';
+  @override
+  String ahead(String time) => '$time ahead';
+  @override
+  String late(String time) => '$time late';
+  @override
+  String fuel(int carbs, String litres, int sodium) =>
+      '$carbs g carbs · $litres l · $sodium mg sodium — Zażółć gęślą jaźń ťažký';
+  @override
+  String get footer => 'Planned with Fjelia from my own running on hills.';
 }

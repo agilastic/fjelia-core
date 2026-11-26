@@ -29,6 +29,7 @@ export 'src/gear.dart';
 export 'src/health.dart';
 export 'src/lab_tests.dart';
 export 'src/plan_edits.dart';
+export 'src/crew_card.dart';
 export 'src/race_course.dart';
 export 'src/roster.dart';
 export 'src/season.dart';

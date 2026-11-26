@@ -13,7 +13,7 @@ dependencies:
   fit_sdk: ^0.3.0
   intl: ^0.20.2
   uuid: ^4.6.0
-  xml: ^6.5.0
+  xml: ^7.0.1
   fjelia_service_api:
     path: ../fjelia_service_api
 
