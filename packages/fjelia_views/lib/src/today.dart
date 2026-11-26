@@ -3,11 +3,10 @@ import 'package:fjelia_core/services/readiness.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'activities.dart';
 import 'training_load.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Calendar days from [from] to [to]; local days are 23 or 25 hours long
 /// when the clocks change.
@@ -167,7 +166,7 @@ Future<TodayView> loadToday(
   DateTime? now,
   bool mondayFirst = true,
 }) async {
-  final date = _day(now ?? DateTime.now());
+  final date = dayOf(now ?? DateTime.now());
   final start = weekStartOf(date, mondayFirst: mondayFirst);
   final end = DateTime(start.year, start.month, start.day + 7);
   final history = await readTrainingLoadHistory(db, now: date);
@@ -193,7 +192,7 @@ Future<TodayView> loadToday(
         id: x.id,
         title: x.title,
         sport: x.sport,
-        date: _day(x.sessionDate.toLocal()),
+        date: dayOf(x.sessionDate.toLocal()),
         durationMin: x.plannedDurationMin,
         zone: x.primaryZone,
         load: x.plannedTrimp,
@@ -214,7 +213,7 @@ Future<TodayView> loadToday(
           ],
           [
             for (final a in thisWeek)
-              if (_day(a.start) == day) a,
+              if (dayOf(a.start) == day) a,
           ],
         );
       }(),
@@ -258,7 +257,7 @@ Future<TodayView> loadToday(
         ? null
         : GoalView(
             name: goal.name,
-            date: _day(goal.raceDate.toLocal()),
+            date: dayOf(goal.raceDate.toLocal()),
             daysToGo: _calendarDays(date, goal.raceDate.toLocal()),
             priority: goal.priority,
             sport: goal.primarySport,

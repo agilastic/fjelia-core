@@ -10,10 +10,9 @@ import 'package:fjelia_core/services/strength/strength_plan_edits.dart';
 import 'package:fjelia_core/services/workout_semantics.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'strength_plans.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Why a plan edit was not made.
 sealed class PlanEditRefused implements Exception {
@@ -65,7 +64,7 @@ class PlanEdits {
 
   /// Throws when nothing may be planned on [day].
   Future<void> checkDay(DateTime day, {GoalSet? goals}) async {
-    final target = _day(day);
+    final target = dayOf(day);
     // An event day, or the rest day before it, belongs to the event.
     final event = (goals ?? await goalSet()).eventBlocking(target);
     if (event != null) throw EventDayRefused(event.name);
@@ -93,7 +92,7 @@ class PlanEdits {
   }) async {
     if (session.status == 'completed') throw const DoneRefused();
     final d = session.sessionDate;
-    final target = _day(day);
+    final target = dayOf(day);
     await checkDay(target, goals: goals);
     final week = await _week(session, target);
     await (db.update(
@@ -119,7 +118,7 @@ class PlanEdits {
     TrainingSession session,
     DateTime day,
   ) async {
-    final target = _day(day);
+    final target = dayOf(day);
     await checkDay(target);
     final id = _newId();
     await db
@@ -267,7 +266,7 @@ class PlanEdits {
   /// moves. Done sessions stay. Returns how many moved.
   Future<int> shiftPlan(String planId, int days, {required DateTime from}) =>
       db.transaction(() async {
-        final start = _day(from);
+        final start = dayOf(from);
         final sessions =
             await (db.select(db.trainingSessions)..where(
                   (t) =>
@@ -298,7 +297,7 @@ class PlanEdits {
   /// starting [to]; days that cannot take one are left out. Returns the
   /// copies.
   Future<List<TrainingSession>> copyWeek(DateTime from, DateTime to) async {
-    final start = _day(from);
+    final start = dayOf(from);
     final sessions =
         await (db.select(db.trainingSessions)
               ..where(
@@ -394,7 +393,7 @@ class PlanEdits {
     required String title,
     required WorkoutDraft draft,
   }) async {
-    final target = _day(day);
+    final target = dayOf(day);
     await checkDay(target);
     final plan =
         await (db.select(db.trainingPlans)

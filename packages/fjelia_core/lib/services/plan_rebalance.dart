@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../models/plan_views.dart';
 import 'missed_workout_planner.dart';
 import 'season/day_load.dart';
+import '../utils/days.dart';
 
 /// What a change does to one session.
 enum RebalanceOp { move, adjust, drop }
@@ -114,12 +115,6 @@ class RebalanceContext {
   }
 }
 
-String _date(DateTime d) =>
-    DateTime(d.year, d.month, d.day).toIso8601String().substring(0, 10);
-
-bool _sameDay(DateTime a, DateTime b) =>
-    a.year == b.year && a.month == b.month && a.day == b.day;
-
 /// The question for the coach, as compact JSON. History, readiness and race
 /// goals travel separately in the usual coach context.
 String rebalanceInputJson(RebalanceContext c) {
@@ -133,23 +128,23 @@ String rebalanceInputJson(RebalanceContext c) {
     'title': s.title,
   };
   return jsonEncode({
-    'today': _date(c.today),
+    'today': isoDay(c.today),
     'missed': session(c.missed),
     'days': [
       for (final d in c.days.skip(1))
         {
-          'date': _date(d),
+          'date': isoDay(d),
           if (c.restWeekdays.contains(d.weekday)) 'rest_day': true,
           if (c.rainyOn?.call(d) ?? false) 'rain': true,
           'load': (c.dayLoad?.call(d) ?? DayLoad.free).name,
           'sessions': [
             for (final s in c.window)
-              if (_sameDay(s.sessionDate, d)) session(s),
+              if (isSameDay(s.sessionDate, d)) session(s),
           ],
         },
     ],
     if (c.raceName != null && c.raceDate != null)
-      'race': {'name': c.raceName, 'date': _date(c.raceDate!)},
+      'race': {'name': c.raceName, 'date': isoDay(c.raceDate!)},
     'rules': {
       'max_per_day': c.maxPerDay,
       'max_changes': 3,
@@ -302,18 +297,18 @@ String? rebalanceProblem(RebalanceProposal p, RebalanceContext c) {
           : _weightAfter(a.s, x.intensity);
     }
     // The missed session does not happen today either way.
-    m.dropped = m.dropped || _sameDay(m.date, c.today);
+    m.dropped = m.dropped || isSameDay(m.date, c.today);
     return out;
   }
 
   Set<String> hardPairs(List<_After> st) {
     bool hardOn(DateTime d) => st.any(
       (a) =>
-          !a.dropped && _sameDay(a.date, d) && a.weight == SessionWeight.hard,
+          !a.dropped && isSameDay(a.date, d) && a.weight == SessionWeight.hard,
     );
     return {
       for (var i = 0; i <= c.daysAhead; i++)
-        if (hardOn(c.day(i)) && hardOn(c.day(i + 1))) _date(c.day(i)),
+        if (hardOn(c.day(i)) && hardOn(c.day(i + 1))) isoDay(c.day(i)),
     };
   }
 
@@ -323,7 +318,7 @@ String? rebalanceProblem(RebalanceProposal p, RebalanceContext c) {
   final after = state(true);
   List<_After> on(List<_After> st, DateTime d) => [
     for (final a in st)
-      if (!a.dropped && _sameDay(a.date, d)) a,
+      if (!a.dropped && isSameDay(a.date, d)) a,
   ];
   int hardIn(List<_After> xs) =>
       xs.where((a) => a.weight == SessionWeight.hard).length;
@@ -335,10 +330,10 @@ String? rebalanceProblem(RebalanceProposal p, RebalanceContext c) {
     if (arrived.isNotEmpty && load == DayLoad.blocked) return 'blocked day';
     final limit = c.maxPerDay.clamp(1, 3);
     if (now.length > limit && now.length > was.length) {
-      return 'too many on ${_date(d)}';
+      return 'too many on ${isoDay(d)}';
     }
     final hardNow = hardIn(now), hardWas = hardIn(was);
-    if (hardNow > 1 && hardNow > hardWas) return 'two hard on ${_date(d)}';
+    if (hardNow > 1 && hardNow > hardWas) return 'two hard on ${isoDay(d)}';
     if (load == DayLoad.easyOnly && hardNow > hardWas) {
       return 'hard on easy-only day';
     }
@@ -433,7 +428,7 @@ List<PreviewDay> previewRebalance(RebalanceProposal p, RebalanceContext c) {
   final days = [for (final d in c.days) PreviewDay(d, <PreviewItem>[])];
   void put(DateTime d, PreviewItem item) {
     for (final day in days) {
-      if (_sameDay(day.date, d)) day.items.add(item);
+      if (isSameDay(day.date, d)) day.items.add(item);
     }
   }
 

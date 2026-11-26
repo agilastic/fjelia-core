@@ -2,12 +2,11 @@ import 'package:fjelia_core/services/compliance.dart';
 import 'package:fjelia_core/services/readiness.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'calendar.dart';
 import 'diary.dart';
 import 'today.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Why a coach should look at an athlete.
 enum AthleteAlert {
@@ -77,7 +76,7 @@ Future<AthleteSummary> loadAthleteSummary(
   String name, {
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final from = DateTime(today.year, today.month, today.day - 6);
   final view = await loadCalendar(
     db,
@@ -123,7 +122,7 @@ Future<AthleteSummary> loadAthleteSummary(
       if (missed >= 2) AthleteAlert.missedSessions,
       if (readiness == ReadinessLevel.red) AthleteAlert.redReadiness,
       if (formStatus == FormStatus.veryFatigued) AthleteAlert.veryFatigued,
-      if (last == null || today.difference(_day(last)).inDays > 4)
+      if (last == null || today.difference(dayOf(last)).inDays > 4)
         AthleteAlert.quiet,
     },
   );

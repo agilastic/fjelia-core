@@ -11,9 +11,7 @@ import 'dart:convert';
 
 import 'package:fjelia_data/database.dart';
 import 'package:fjelia_views/fjelia_views.dart';
-
-String _date(DateTime d) =>
-    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+import 'package:fjelia_core/utils/days.dart';
 
 double _r(double v, [int digits = 1]) =>
     double.parse(v.toStringAsFixed(digits));
@@ -185,7 +183,7 @@ class FjeliaMcp {
     'id': s.id,
     'title': s.title,
     'sport': s.sport,
-    'date': _date(s.date),
+    'date': isoDay(s.date),
     'minutes': s.durationMin,
     'zone': s.zone,
     'load': s.load,
@@ -205,7 +203,7 @@ class FjeliaMcp {
         final t = await loadToday(db);
         final r = t.readiness;
         return {
-          'date': _date(t.date),
+          'date': isoDay(t.date),
           if (r != null)
             'readiness': {
               'level': r.level.name,
@@ -231,7 +229,7 @@ class FjeliaMcp {
           if (t.nextGoal case final g?)
             'nextGoal': {
               'name': g.name,
-              'date': _date(g.date),
+              'date': isoDay(g.date),
               'daysToGo': g.daysToGo,
               'priority': g.priority,
               'km': _r(g.distanceMeters / 1000),
@@ -274,7 +272,7 @@ class FjeliaMcp {
           'weeks': [
             for (final w in view.weeks)
               {
-                'start': _date(w.start),
+                'start': isoDay(w.start),
                 'doneMinutes': w.summary.done.inMinutes,
                 'plannedMinutes': w.summary.planned.inMinutes,
                 'km': _r(w.summary.distanceMeters / 1000),
@@ -284,7 +282,7 @@ class FjeliaMcp {
                   for (final d in w.days)
                     if (d.entries.isNotEmpty || d.hrv != null)
                       {
-                        'date': _date(d.date),
+                        'date': isoDay(d.date),
                         'hrvMs': ?d.hrv?.round(),
                         'readiness': ?d.readiness?.name,
                         'entries': [
@@ -388,7 +386,7 @@ class FjeliaMcp {
           'form': a.load.tsb.round(),
           if (end != null)
             'forecastEnd': {
-              'date': _date(end.date),
+              'date': isoDay(end.date),
               'fitness': end.ctl.round(),
               'form': end.tsb.round(),
             },
@@ -417,7 +415,7 @@ class FjeliaMcp {
           'thresholds': [
             for (final t in a.thresholds.reversed.take(10))
               {
-                'date': _date(t.date),
+                'date': isoDay(t.date),
                 'source': t.source,
                 'ftpWatts': ?t.ftpWatts,
                 'lt2Bpm': ?t.lt2Bpm,
@@ -448,7 +446,7 @@ class FjeliaMcp {
                 'name': g.name,
                 'priority': g.priority,
                 'sport': g.sport,
-                if (g.date case final d?) 'date': _date(d),
+                if (g.date case final d?) 'date': isoDay(d),
               },
           ],
           'conflicts': [for (final c in s.conflicts) c.message],
@@ -456,7 +454,7 @@ class FjeliaMcp {
           'weeks': [
             for (final w in s.weeks)
               {
-                'start': _date(w.start),
+                'start': isoDay(w.start),
                 'phase': w.phase,
                 'minutesBySport': w.minutesBySport,
                 'load': w.load,
@@ -484,10 +482,10 @@ class FjeliaMcp {
         );
         Map<String, Object?> metric(HealthMetric m) => {
           if (m.latest case final l?)
-            'latest': {'date': _date(l.$1), 'value': _r(l.$2)},
+            'latest': {'date': isoDay(l.$1), 'value': _r(l.$2)},
           if (m.change case final c?) 'changeVsWeekBefore': _r(c),
           'series': [
-            for (final (d, v) in m.series) [_date(d), _r(v)],
+            for (final (d, v) in m.series) [isoDay(d), _r(v)],
           ],
         };
         return {
@@ -499,7 +497,7 @@ class FjeliaMcp {
           'weightKg': metric(h.weight),
           'bloodPressure': [
             for (final b in h.bloodPressure)
-              [_date(b.date), b.systolic.round(), b.diastolic.round()],
+              [isoDay(b.date), b.systolic.round(), b.diastolic.round()],
           ],
         };
       },
@@ -523,7 +521,7 @@ class FjeliaMcp {
           'entries': [
             for (final e in entries.take(limit))
               {
-                'date': _date(e.at),
+                'date': isoDay(e.at),
                 'kind': e.kind.name,
                 'about': ?e.title,
                 'effort': ?e.effort,
@@ -553,7 +551,10 @@ class FjeliaMcp {
           await _sessionOf(edits, args),
           _day(args, 'date'),
         );
-        return {'moved': moved.title, 'to': _date(moved.sessionDate.toLocal())};
+        return {
+          'moved': moved.title,
+          'to': isoDay(moved.sessionDate.toLocal()),
+        };
       },
     ),
     McpTool(
@@ -574,7 +575,7 @@ class FjeliaMcp {
           await _sessionOf(edits, args),
           reason: '${args['reason'] ?? 'Marked as rest'}',
         );
-        return {'rest': s.title, 'date': _date(s.sessionDate.toLocal())};
+        return {'rest': s.title, 'date': isoDay(s.sessionDate.toLocal())};
       },
     ),
     McpTool(
@@ -621,7 +622,7 @@ class FjeliaMcp {
         return {
           'added': s.title,
           'id': s.id,
-          'date': _date(s.sessionDate.toLocal()),
+          'date': isoDay(s.sessionDate.toLocal()),
           'minutes': s.plannedDurationMin,
           'load': s.plannedTrimp,
         };

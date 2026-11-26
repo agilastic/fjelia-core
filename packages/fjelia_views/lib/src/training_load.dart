@@ -2,8 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_core/services/training_load.dart';
 import 'package:fjelia_data/database.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+import 'package:fjelia_core/utils/days.dart';
 
 /// Every day's load and the fitness, fatigue and form it adds up to.
 class TrainingLoadHistory {
@@ -22,11 +21,11 @@ Future<TrainingLoadHistory> readTrainingLoadHistory(
   AppDatabase db, {
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final daily = <DateTime, double>{};
   for (final score in await db.getAllScores()) {
     // Scores use UTC calendar keys, rather than activity timestamps.
-    final d = _day(score.date.toUtc());
+    final d = dayOf(score.date.toUtc());
     final load = score.strainScore;
     if (d.isAfter(today) || load == null || !load.isFinite || load < 0) {
       continue;
@@ -53,7 +52,7 @@ Future<TrainingLoadHistory> readTrainingLoadHistory(
           .get();
   final activityDaily = <DateTime, double>{};
   for (final activity in activities) {
-    final d = _day(activity.read(t.startDate)!.toLocal());
+    final d = dayOf(activity.read(t.startDate)!.toLocal());
     final load = effectiveLoadFromSummary(
       durationSeconds: activity.read(t.durationSeconds)!,
       recordedLoad: activity.read(t.trainingLoad),

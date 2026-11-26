@@ -1,8 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:fjelia_core/services/readiness.dart';
 import 'package:fjelia_data/database.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+import 'package:fjelia_core/utils/days.dart';
 
 /// A value per day, oldest first.
 typedef DailySeries = List<(DateTime, double)>;
@@ -133,14 +132,14 @@ Future<HealthView> loadHealth(
   int days = 90,
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final from = DateTime(today.year, today.month, today.day - days + 1);
   final until = DateTime(today.year, today.month, today.day + 1);
   DailySeries series(Iterable<(DateTime, double?)> raw) {
     final byDay = <DateTime, double>{};
     for (final (d, v) in raw) {
       if (v == null || !v.isFinite || v <= 0) continue;
-      byDay[_day(d.toLocal())] = v;
+      byDay[dayOf(d.toLocal())] = v;
     }
     final keys = byDay.keys.toList()..sort();
     return [for (final k in keys) (k, byDay[k]!)];
@@ -195,7 +194,7 @@ Future<HealthView> loadHealth(
           ))
           .get()) {
     if (ReadinessLevel.values.asNameMap()[r.level] case final level?) {
-      readiness[_day(r.date.toLocal())] = level;
+      readiness[dayOf(r.date.toLocal())] = level;
     }
   }
   final ecg =
@@ -208,7 +207,7 @@ Future<HealthView> loadHealth(
     for (final s in sleepRows)
       if (s.totalSleepSeconds > 0)
         SleepNight(
-          date: _day(s.date.toLocal()),
+          date: dayOf(s.date.toLocal()),
           total: Duration(seconds: s.totalSleepSeconds),
           deep: _seconds(s.deepSleepSeconds),
           rem: _seconds(s.remSleepSeconds),
@@ -247,7 +246,7 @@ Future<HealthView> loadHealth(
       for (final b in bp)
         if (b.avgSystolic > 0)
           BloodPressureDay(
-            _day(b.date.toLocal()),
+            dayOf(b.date.toLocal()),
             b.avgSystolic,
             b.avgDiastolic,
             b.count,

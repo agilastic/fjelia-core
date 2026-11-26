@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../utils/stats.dart';
 import 'course.dart';
 
 /// Metres between the points of the cleaned elevation profile.
@@ -161,11 +162,6 @@ CourseProfile? analyseCourse(Course course, {double minClimbM = 50}) {
     }
     bands[band] += gradeWindowM / 1000;
   }
-  double percentile95(Iterable<double> v) {
-    final s = v.toList()..sort();
-    if (s.isEmpty) return 0;
-    return s[((s.length - 1) * 0.95).round()];
-  }
 
   // Sliding 100 m grades for the steepest parts and per climb.
   final sliding = [for (var i = w; i < n; i++) gradeAt(i)];
@@ -179,14 +175,18 @@ CourseProfile? analyseCourse(Course course, {double minClimbM = 50}) {
     bands: bands,
     climbs: _climbs(smooth, sliding, w, minClimbM, up: true),
     descents: _climbs(smooth, sliding, w, minClimbM, up: false),
-    steepestUp: percentile95([
-      for (final g in sliding)
-        if (g > 0) g,
-    ]),
-    steepestDown: percentile95([
-      for (final g in sliding)
-        if (g < 0) -g,
-    ]),
+    steepestUp:
+        (percentile([
+          for (final g in sliding)
+            if (g > 0) g,
+        ], 0.95) ??
+        0),
+    steepestDown:
+        (percentile([
+          for (final g in sliding)
+            if (g < 0) -g,
+        ], 0.95) ??
+        0),
   );
 }
 

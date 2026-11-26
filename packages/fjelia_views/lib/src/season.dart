@@ -3,11 +3,10 @@ import 'package:fjelia_core/services/season/goal_set.dart';
 import 'package:fjelia_core/services/season/season_report.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'today.dart' show PlannedSession, plannedSessionStates;
 import 'training_load.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// A goal the season is planned for.
 class SeasonGoal {
@@ -126,7 +125,7 @@ class SeasonView {
 
   /// The week that contains [day], or null.
   SeasonWeek? weekOf(DateTime day) {
-    final d = _day(day);
+    final d = dayOf(day);
     for (final w in weeks) {
       if (!d.isBefore(w.start) &&
           d.isBefore(w.start.add(const Duration(days: 7)))) {
@@ -140,7 +139,7 @@ class SeasonView {
 /// The season of the active plan, as the phone's planner stored it, with
 /// the stored sessions per week and the fitness they lead to.
 Future<SeasonView> loadSeason(AppDatabase db, {DateTime? now}) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final plan =
       await (db.select(db.trainingPlans)
             ..where(
@@ -182,7 +181,7 @@ Future<SeasonView> loadSeason(AppDatabase db, {DateTime? now}) async {
         id: s.id,
         title: s.title,
         sport: s.sport,
-        date: _day(s.sessionDate.toLocal()),
+        date: dayOf(s.sessionDate.toLocal()),
         durationMin: s.plannedDurationMin,
         zone: s.primaryZone,
         load: s.plannedTrimp,
@@ -208,8 +207,8 @@ Future<SeasonView> loadSeason(AppDatabase db, {DateTime? now}) async {
     days: lastDay.difference(today).inDays.clamp(0, 400) + 7,
   );
   final form = {
-    for (final p in history.points) _day(p.date): p,
-    for (final p in projected) _day(p.date): p,
+    for (final p in history.points) dayOf(p.date): p,
+    for (final p in projected) dayOf(p.date): p,
   };
 
   final goalsJson = (report['goals'] as Map?)?.cast<String, Object?>() ?? {};
@@ -263,7 +262,7 @@ Future<SeasonView> loadSeason(AppDatabase db, {DateTime? now}) async {
           for (final MapEntry(:key, :value) in intents.entries)
             goalNames['$key'] ?? '$key': '$value',
         },
-        form: form[_day(end.subtract(const Duration(days: 1)))],
+        form: form[dayOf(end.subtract(const Duration(days: 1)))],
       ),
     );
   }
@@ -274,7 +273,7 @@ Future<SeasonView> loadSeason(AppDatabase db, {DateTime? now}) async {
       : weeks.last.start.add(const Duration(days: 6));
   final absences = [
     for (final a in await db.absencesBetween(seasonStart, seasonEnd))
-      (a.kind, _day(a.startDay.toLocal()), _day(a.endDay.toLocal())),
+      (a.kind, dayOf(a.startDay.toLocal()), dayOf(a.endDay.toLocal())),
   ];
 
   return SeasonView(

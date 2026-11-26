@@ -1,7 +1,7 @@
 /// Training load and form (CTL, ATL, TSB) from daily loads.
 library;
 
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+import '../utils/days.dart';
 
 /// One day of the form chart.
 class FormPoint {
@@ -73,13 +73,13 @@ List<FormPoint> buildTrainingFormSeries({
   required Map<DateTime, double> dailyLoads,
   required DateTime through,
 }) {
-  final end = _day(through);
+  final end = dayOf(through);
   final daily = <DateTime, double>{};
   // Ignore Unix-epoch placeholder dates while retaining all real imported
   // history. A sentinel row otherwise makes the chart claim to start in 1970.
   final earliestUsableDate = DateTime(1970, 1, 2);
   for (final entry in dailyLoads.entries) {
-    final d = _day(entry.key);
+    final d = dayOf(entry.key);
     final load = entry.value;
     if (d.isBefore(earliestUsableDate) ||
         d.isAfter(end) ||
@@ -118,7 +118,7 @@ List<FormPoint> projectTrainingForm(
   Map<DateTime, double> planned = const {},
   int days = 45,
 }) {
-  final plan = {for (final e in planned.entries) _day(e.key): e.value};
+  final plan = {for (final e in planned.entries) dayOf(e.key): e.value};
   var ctl = from.ctl, atl = from.atl;
   return [
     for (var i = 1; i <= days; i++)

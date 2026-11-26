@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:fjelia_service_api/fjelia_service_api.dart';
 
 import '../models/ecg.dart';
+import '../utils/stats.dart';
 
 /// App-side pre-analysis of a single-lead ECG for training: heart rate,
 /// heart-rate variability and signal quality.
@@ -367,7 +368,7 @@ EcgAnalysis analyzeEcg(
   ];
   final enough = analysed >= 10 && beats.length >= 8 && rr.length >= 6;
   if (enough) {
-    final medianRr = _median(rr);
+    final medianRr = (median(rr) ?? 0);
     // Premature beats and beats of another shape stay out of the HRV, as in
     // any HRV analysis; the app does not report them.
     _markPremature(beats);
@@ -481,7 +482,7 @@ List<double> _isoelectric(List<double> raw, List<int> r, double hz) {
   for (final p in r) {
     if (p - from < 0) continue;
     knotAt.add(p - (from + to) ~/ 2);
-    knotValue.add(_median(raw.sublist(p - from, p - to + 1)));
+    knotValue.add((median(raw.sublist(p - from, p - to + 1)) ?? 0));
   }
   if (knotAt.isEmpty) return List.of(raw);
   final out = List<double>.filled(n, 0);
@@ -515,12 +516,13 @@ List<double> _movingMedian(List<double> x, int width, double hz) {
   for (var i = 0; i < n; i += stride) {
     at.add(i);
     values.add(
-      _median(x.sublist(math.max(0, i - half), math.min(n, i + half + 1))),
+      (median(x.sublist(math.max(0, i - half), math.min(n, i + half + 1))) ??
+          0),
     );
   }
   if (at.last != n - 1) {
     at.add(n - 1);
-    values.add(_median(x.sublist(math.max(0, n - 1 - half), n)));
+    values.add((median(x.sublist(math.max(0, n - 1 - half), n)) ?? 0));
   }
   final out = List<double>.filled(n, 0);
   for (var k = 0; k + 1 < at.length; k++) {
@@ -578,11 +580,13 @@ List<int> _detectR(List<double> y, double hz) {
   }
   // Search back in gaps over 1.66 times the usual spacing.
   if (peaks.length >= 4) {
-    final spacing = _median([
-      for (var k = 1; k < peaks.length; k++)
-        (peaks[k] - peaks[k - 1]).toDouble(),
-    ]);
-    final level = _median([for (final p in peaks) integ[p]]) * .3;
+    final spacing =
+        (median([
+          for (var k = 1; k < peaks.length; k++)
+            (peaks[k] - peaks[k - 1]).toDouble(),
+        ]) ??
+        0);
+    final level = (median([for (final p in peaks) integ[p]]) ?? 0) * .3;
     for (var k = peaks.length - 1; k > 0; k--) {
       if (peaks[k] - peaks[k - 1] <= 1.66 * spacing) continue;
       var best = -1;
@@ -610,7 +614,9 @@ List<int> _detectR(List<double> y, double hz) {
     return best;
   }
 
-  final sign = _median([for (final p in peaks) absPeak(p)]) >= 0 ? 1.0 : -1.0;
+  final sign = (median([for (final p in peaks) absPeak(p)]) ?? 0) >= 0
+      ? 1.0
+      : -1.0;
   final out = <int>[];
   for (final p in peaks) {
     final r = extreme(p, sign);
@@ -639,7 +645,7 @@ void _rateWindow(
     w.problem = 'no beats detected';
     return;
   }
-  final amplitude = _median([for (final r in peaks) s.y[r].abs()]);
+  final amplitude = (median([for (final r in peaks) s.y[r].abs()]) ?? 0);
   if (amplitude < 150) {
     w.problem = 'low amplitude';
     return;
@@ -707,7 +713,7 @@ void _rateWindow(
     best.add(top);
   }
   return (
-    median: _median(best),
+    median: (median(best) ?? 0),
     orphans: best.where((c) => c < .8).length / best.length,
   );
 }
@@ -889,7 +895,7 @@ void _markPremature(List<_Beat> beats) {
         if (j != k && j != k + 1 && beats[j].rrBefore != null)
           beats[j].rrBefore!,
     ];
-    if (around.length >= 4 && rr < .8 * _median(around)) {
+    if (around.length >= 4 && rr < .8 * (median(around) ?? 0)) {
       beats[k].premature = true;
     }
   }
@@ -943,7 +949,8 @@ List<double>? _medianBeat(List<List<double>> beats) {
   if (beats.isEmpty) return null;
   final length = beats.first.length;
   return [
-    for (var i = 0; i < length; i++) _median([for (final b in beats) b[i]]),
+    for (var i = 0; i < length; i++)
+      (median([for (final b in beats) b[i]]) ?? 0),
   ];
 }
 
@@ -959,13 +966,6 @@ double _correlation(List<double> a, List<double> b) {
     db += (b[i] - mb) * (b[i] - mb);
   }
   return da == 0 || db == 0 ? 0 : num / math.sqrt(da * db);
-}
-
-double _median(List<double> values) {
-  if (values.isEmpty) return 0;
-  final s = [...values]..sort();
-  final m = s.length ~/ 2;
-  return s.length.isOdd ? s[m] : (s[m - 1] + s[m]) / 2;
 }
 
 double _std(List<double> values) {

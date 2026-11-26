@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fjelia_core/models/workout_nutrition.dart';
 import 'package:fjelia_data/database.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+import 'package:fjelia_core/utils/days.dart';
 
 /// The fuelling of one planned workout.
 class FuelPlan {
@@ -37,7 +36,7 @@ Future<FuelView> loadFuel(
   int days = 7,
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final records = {
     for (final r in await db.select(db.nutritionRecords).get()) r.recordKey: r,
   };

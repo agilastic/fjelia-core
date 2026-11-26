@@ -8,12 +8,11 @@ import 'package:fjelia_core/services/best_efforts.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'sport_stats.dart';
 import 'today.dart' show plannedSessionStates;
 import 'training_load.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// How far back Analysis looks.
 enum AnalysisRange {
@@ -126,7 +125,7 @@ Future<AnalysisView> loadAnalysis(
   bool mondayFirst = true,
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final history = await readTrainingLoadHistory(db, now: today);
   final from = DateTime(today.year, today.month, today.day - range.days + 1);
   final form = [
@@ -151,7 +150,7 @@ Future<AnalysisView> loadAnalysis(
                 t.status.isIn(plannedSessionStates),
           ))
           .get()) {
-    final d = _day(x.sessionDate.toLocal());
+    final d = dayOf(x.sessionDate.toLocal());
     planned[d] = (planned[d] ?? 0) + x.plannedTrimp;
   }
   final forecast = history.points.isEmpty
@@ -176,7 +175,7 @@ Future<AnalysisView> loadAnalysis(
         db.thresholdRecords,
       )..orderBy([(t) => OrderingTerm(expression: t.date)])).get())
         ThresholdPoint(
-          date: _day(r.date.toLocal()),
+          date: dayOf(r.date.toLocal()),
           source: r.source,
           lt1Bpm: r.lt1Bpm,
           lt2Bpm: r.lt2Bpm,

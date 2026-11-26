@@ -4,12 +4,11 @@ import 'package:fjelia_core/services/readiness.dart';
 import 'package:fjelia_core/services/training_form.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/utils/days.dart';
 
 import 'activities.dart';
 import 'today.dart';
 import 'training_load.dart';
-
-DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
 /// Something on a calendar day.
 sealed class CalendarEntry {
@@ -169,7 +168,7 @@ Future<CalendarView> loadCalendar(
   required DateTime focusEnd,
   DateTime? now,
 }) async {
-  final today = _day(now ?? DateTime.now());
+  final today = dayOf(now ?? DateTime.now());
   final end = DateTime(start.year, start.month, start.day + 7 * weeks);
 
   final s = db.trainingSessions;
@@ -202,7 +201,7 @@ Future<CalendarView> loadCalendar(
   void add(DateTime day, CalendarEntry e) => (byDay[day] ??= []).add(e);
 
   for (final x in sessions) {
-    final day = _day(x.sessionDate.toLocal());
+    final day = dayOf(x.sessionDate.toLocal());
     final actual = actuals[x.id];
     final activityId = actual?.activityId ?? actual?.creditedByActivityId;
     final activity = activityId == null ? null : activities[activityId];
@@ -230,7 +229,7 @@ Future<CalendarView> loadCalendar(
     );
   }
   for (final a in activities.values) {
-    if (!matched.contains(a.id)) add(_day(a.start), ActivityEntry(a));
+    if (!matched.contains(a.id)) add(dayOf(a.start), ActivityEntry(a));
   }
   for (final g
       in await (db.select(db.raceGoals)..where(
@@ -240,7 +239,7 @@ Future<CalendarView> loadCalendar(
                 g.raceDate.isSmallerThanValue(end),
           ))
           .get()) {
-    final day = _day(g.raceDate.toLocal());
+    final day = dayOf(g.raceDate.toLocal());
     add(
       day,
       RaceEntry(
@@ -270,7 +269,7 @@ Future<CalendarView> loadCalendar(
           ))
           .get()) {
     if (r.hrvLastNight case final v? when v > 0) {
-      hrv[_day(r.date.toLocal())] = v;
+      hrv[dayOf(r.date.toLocal())] = v;
     }
   }
   final readiness = <DateTime, ReadinessLevel>{};
@@ -283,12 +282,12 @@ Future<CalendarView> loadCalendar(
           ))
           .get()) {
     if (ReadinessLevel.values.asNameMap()[r.level] case final level?) {
-      readiness[_day(r.date.toLocal())] = level;
+      readiness[dayOf(r.date.toLocal())] = level;
     }
   }
   final form = {
     for (final p in (await readTrainingLoadHistory(db, now: today)).points)
-      _day(p.date): p,
+      dayOf(p.date): p,
   };
 
   int rank(CalendarEntry e) => switch (e) {
@@ -311,12 +310,12 @@ Future<CalendarView> loadCalendar(
                 final entries = [
                   ...?byDay[date],
                   for (final a in absences)
-                    if (!_day(a.startDay).isAfter(date) &&
-                        !_day(a.endDay).isBefore(date))
+                    if (!dayOf(a.startDay).isAfter(date) &&
+                        !dayOf(a.endDay).isBefore(date))
                       AbsenceEntry(
                         a.kind,
-                        first: _day(a.startDay),
-                        last: _day(a.endDay),
+                        first: dayOf(a.startDay),
+                        last: dayOf(a.endDay),
                       ),
                 ]..sort((a, b) => rank(a).compareTo(rank(b)));
                 return CalendarDay(
