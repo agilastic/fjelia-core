@@ -236,6 +236,68 @@ void main() {
     expect(await phone.syncChangesSince(0), hasLength(2));
   });
 
+  test('a session deleted elsewhere leaves its watch entries to clean up', () async {
+    Future<void> session(String id) => phone.customStatement(
+      'INSERT INTO training_sessions (id, plan_id, athlete_id, session_date, '
+      'session_number, week_number, sport, session_type, phase, primary_zone, '
+      'title, planned_duration_min, planned_trimp, session_level, status, '
+      'garmin_workout_id, garmin_alternative_id) VALUES '
+      "(?, 'p', 'self', 1800000000, 1, 1, 'running', 'easy', 'base', 2, "
+      "'Run', 40, 40, 1, 'planned', 'gw-$id', 'gs-$id')",
+      [id],
+    );
+    await session('s1');
+    await session('s2');
+    await phone.customStatement(
+      "INSERT INTO workout_deliveries (session_id, provider_id, remote_id, sent_at) "
+      "VALUES ('s1', 'coros', 'c-1', 0), ('s1', 'garmin', NULL, 0)",
+    );
+    // The computer deletes s1.
+    final deletion = (await phone.syncChangesSince(
+      0,
+    )).lastWhere((c) => c.table == 'training_sessions' && c.key.single == 's1');
+    await phone.applySyncChanges([
+      SyncChange(
+        seq: deletion.seq,
+        table: deletion.table,
+        key: deletion.key,
+        op: SyncOp.delete,
+        category: deletion.category,
+        athleteId: deletion.athleteId,
+        changedAt: DateTime.now().add(const Duration(minutes: 1)),
+      ),
+    ], fromDevice: 'desktop');
+    final queued = await phone
+        .customSelect(
+          'SELECT provider_id, remote_id, schedule_id FROM provider_cleanups '
+          'ORDER BY provider_id',
+        )
+        .get();
+    expect(
+      [
+        for (final r in queued)
+          (
+            r.read<String>('provider_id'),
+            r.read<String>('remote_id'),
+            r.readNullable<String>('schedule_id'),
+          ),
+      ],
+      [('coros', 'c-1', null), ('garmin', 'gw-s1', 'gs-s1')],
+    );
+    expect(
+      await phone.customSelect('SELECT * FROM workout_deliveries').get(),
+      isEmpty,
+    );
+    // Deleting on the phone itself queues nothing: it removes its own.
+    await phone.customStatement(
+      "DELETE FROM training_sessions WHERE id = 's2'",
+    );
+    expect(
+      await phone.customSelect('SELECT * FROM provider_cleanups').get(),
+      hasLength(2),
+    );
+  });
+
   test('a device never gets its own changes back', () async {
     await phone.into(phone.absences).insert(absence('vacation'));
     await sync();
