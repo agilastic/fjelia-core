@@ -133,6 +133,7 @@ const syncTables = <SyncTable>[
   SyncTable('race_goals', _p, key: ['id'], merge: _edited),
   SyncTable('training_plans', _p, key: ['id'], merge: _edited),
   SyncTable('plan_goals', _p, key: ['plan_id', 'goal_id'], merge: _edited),
+  SyncTable('race_courses', _p, key: ['goal_id'], merge: _edited),
   SyncTable('training_sessions', _p, key: ['id'], merge: _edited),
   SyncTable('session_actuals', _p, key: ['session_id'], merge: _edited),
   SyncTable('session_nts', _p, key: ['id'], merge: _edited),

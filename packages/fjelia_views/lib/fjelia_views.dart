@@ -6,6 +6,10 @@ library;
 
 export 'package:fjelia_core/models/ecg.dart' show EcgChunk, ecgDisplayPoints;
 export 'package:fjelia_core/models/workout_draft.dart';
+export 'package:fjelia_core/services/course/course.dart';
+export 'package:fjelia_core/services/course/course_prediction.dart';
+export 'package:fjelia_core/services/course/course_profile.dart';
+export 'package:fjelia_core/services/course/grade_pace.dart';
 export 'package:fjelia_core/services/ecg_analysis.dart'
     show EcgAnalysis, EcgHeartRate, EcgBlock;
 export 'package:fjelia_core/services/lactate_test.dart';
@@ -21,6 +25,7 @@ export 'src/gear.dart';
 export 'src/health.dart';
 export 'src/lab_tests.dart';
 export 'src/plan_edits.dart';
+export 'src/race_course.dart';
 export 'src/roster.dart';
 export 'src/season.dart';
 export 'src/sport_stats.dart';

@@ -1599,6 +1599,29 @@ class LabTests extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// The course of a race goal: the track with its checkpoints, as JSON
+/// (`Course.toJson` in fjelia_core), from the race library or a GPX file
+/// the athlete added.
+@DataClassName('RaceCourseRow')
+class RaceCourses extends Table {
+  TextColumn get goalId => text()();
+  TextColumn get courseJson => text()();
+
+  /// `library` (races.fjelia.com) or `upload`.
+  TextColumn get source => text()();
+
+  /// The race in the library it came from, when it did.
+  TextColumn get libraryRaceId => text().nullable()();
+
+  /// When the race starts, for the margin to each cut-off; null while
+  /// unknown.
+  DateTimeColumn get startAt => dateTime().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {goalId};
+}
+
 /// The equipment an activity was done with, when the athlete said.
 @DataClassName('ActivityGearRow')
 class ActivityGear extends Table {
@@ -1723,6 +1746,7 @@ List<BpMeasurement> _validBpRows(List<BpMeasurement> rows) =>
     Gear,
     ActivityGear,
     LabTests,
+    RaceCourses,
     CoachMemories,
     ProReports,
   ],
@@ -1737,7 +1761,7 @@ class AppDatabase extends _$AppDatabase {
       defaultSourcePriorities[group.name]!;
 
   @override
-  int get schemaVersion => 76;
+  int get schemaVersion => 77;
 
   Future<void> saveHeartRateSamples(List<TimedHeartRate> samples) async {
     if (samples.isEmpty) return;
@@ -3768,6 +3792,7 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(activityGear);
       }
       if (from < 76) await m.createTable(labTests);
+      if (from < 77) await m.createTable(raceCourses);
     },
   );
 

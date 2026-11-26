@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fjelia_core/models/ecg.dart';
 import 'package:fjelia_core/services/ecg_analysis.dart';
+
+export 'package:fjelia_core/services/ecg_analysis.dart' show analyzeEcg;
 import 'package:fjelia_data/database.dart';
 import 'package:fjelia_data/sync.dart';
 
@@ -33,6 +35,7 @@ class EcgDetail {
     this.sampleRateHz,
     this.chunks = const [],
     this.analysis,
+    this.complete = false,
   });
   final EcgItem item;
   final EcgWaveformState state;
@@ -40,8 +43,25 @@ class EcgDetail {
   final List<EcgChunk> chunks;
   final EcgAnalysis? analysis;
 
+  /// Every sample of the recording is here; a sync may still be bringing
+  /// the rest while this is false.
+  final bool complete;
+
+  EcgDetail withAnalysis(EcgAnalysis a) => EcgDetail(
+    item: item,
+    state: state,
+    sampleRateHz: sampleRateHz,
+    chunks: chunks,
+    analysis: a,
+    complete: complete,
+  );
+
   /// Seconds of waveform this device has.
-  double get seconds => analysis?.durationSeconds ?? 0;
+  double get seconds {
+    final hz = sampleRateHz;
+    if (chunks.isEmpty || hz == null) return 0;
+    return chunks.last.offsetUs / 1e6 + chunks.last.microvolts.length / hz;
+  }
 }
 
 /// The ECG waveform chunks of [recordingId], in order, without the
@@ -61,7 +81,13 @@ Future<List<EcgChunk>> loadEcgChunks(
 ];
 
 /// [recordingId] with its waveform and reading, or null when it is gone.
-Future<EcgDetail?> loadEcgDetail(AppDatabase db, String recordingId) async {
+/// With [analyse] false the reading is left out, for a caller that runs
+/// [analyzeEcg] elsewhere: a night's recording takes a while.
+Future<EcgDetail?> loadEcgDetail(
+  AppDatabase db,
+  String recordingId, {
+  bool analyse = true,
+}) async {
   final row = await (db.select(
     db.ecgRecordings,
   )..where((t) => t.recordingId.equals(recordingId))).getSingleOrNull();
@@ -93,7 +119,9 @@ Future<EcgDetail?> loadEcgDetail(AppDatabase db, String recordingId) async {
     state: EcgWaveformState.here,
     sampleRateHz: hz,
     chunks: chunks,
+    complete:
+        chunks.fold(0, (n, c) => n + c.microvolts.length) >= row.sampleCount,
     // No clinical rules: heart rate, HRV and quality for training only.
-    analysis: analyzeEcg(chunks, hz),
+    analysis: analyse ? analyzeEcg(chunks, hz) : null,
   );
 }

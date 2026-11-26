@@ -68,6 +68,7 @@ void main() {
     await waveform('r1');
     final detail = (await loadEcgDetail(db, 'r1'))!;
     expect(detail.state, EcgWaveformState.here);
+    expect(detail.complete, isTrue);
     expect(detail.chunks, hasLength(60));
     expect(detail.seconds, closeTo(60, 1));
     // Arrived: no longer asked for.

@@ -52496,6 +52496,441 @@ class LabTestsCompanion extends UpdateCompanion<LabTestRow> {
   }
 }
 
+class $RaceCoursesTable extends RaceCourses
+    with TableInfo<$RaceCoursesTable, RaceCourseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RaceCoursesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<String> goalId = GeneratedColumn<String>(
+    'goal_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _courseJsonMeta = const VerificationMeta(
+    'courseJson',
+  );
+  @override
+  late final GeneratedColumn<String> courseJson = GeneratedColumn<String>(
+    'course_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _libraryRaceIdMeta = const VerificationMeta(
+    'libraryRaceId',
+  );
+  @override
+  late final GeneratedColumn<String> libraryRaceId = GeneratedColumn<String>(
+    'library_race_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startAtMeta = const VerificationMeta(
+    'startAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startAt = GeneratedColumn<DateTime>(
+    'start_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    goalId,
+    courseJson,
+    source,
+    libraryRaceId,
+    startAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'race_courses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RaceCourseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('goal_id')) {
+      context.handle(
+        _goalIdMeta,
+        goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('course_json')) {
+      context.handle(
+        _courseJsonMeta,
+        courseJson.isAcceptableOrUnknown(data['course_json']!, _courseJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_courseJsonMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('library_race_id')) {
+      context.handle(
+        _libraryRaceIdMeta,
+        libraryRaceId.isAcceptableOrUnknown(
+          data['library_race_id']!,
+          _libraryRaceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_at')) {
+      context.handle(
+        _startAtMeta,
+        startAt.isAcceptableOrUnknown(data['start_at']!, _startAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {goalId};
+  @override
+  RaceCourseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RaceCourseRow(
+      goalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}goal_id'],
+      )!,
+      courseJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}course_json'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      libraryRaceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}library_race_id'],
+      ),
+      startAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RaceCoursesTable createAlias(String alias) {
+    return $RaceCoursesTable(attachedDatabase, alias);
+  }
+}
+
+class RaceCourseRow extends DataClass implements Insertable<RaceCourseRow> {
+  final String goalId;
+  final String courseJson;
+
+  /// `library` (races.fjelia.com) or `upload`.
+  final String source;
+
+  /// The race in the library it came from, when it did.
+  final String? libraryRaceId;
+
+  /// When the race starts, for the margin to each cut-off; null while
+  /// unknown.
+  final DateTime? startAt;
+  final DateTime updatedAt;
+  const RaceCourseRow({
+    required this.goalId,
+    required this.courseJson,
+    required this.source,
+    this.libraryRaceId,
+    this.startAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['goal_id'] = Variable<String>(goalId);
+    map['course_json'] = Variable<String>(courseJson);
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || libraryRaceId != null) {
+      map['library_race_id'] = Variable<String>(libraryRaceId);
+    }
+    if (!nullToAbsent || startAt != null) {
+      map['start_at'] = Variable<DateTime>(startAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  RaceCoursesCompanion toCompanion(bool nullToAbsent) {
+    return RaceCoursesCompanion(
+      goalId: Value(goalId),
+      courseJson: Value(courseJson),
+      source: Value(source),
+      libraryRaceId: libraryRaceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(libraryRaceId),
+      startAt: startAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RaceCourseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RaceCourseRow(
+      goalId: serializer.fromJson<String>(json['goalId']),
+      courseJson: serializer.fromJson<String>(json['courseJson']),
+      source: serializer.fromJson<String>(json['source']),
+      libraryRaceId: serializer.fromJson<String?>(json['libraryRaceId']),
+      startAt: serializer.fromJson<DateTime?>(json['startAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'goalId': serializer.toJson<String>(goalId),
+      'courseJson': serializer.toJson<String>(courseJson),
+      'source': serializer.toJson<String>(source),
+      'libraryRaceId': serializer.toJson<String?>(libraryRaceId),
+      'startAt': serializer.toJson<DateTime?>(startAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  RaceCourseRow copyWith({
+    String? goalId,
+    String? courseJson,
+    String? source,
+    Value<String?> libraryRaceId = const Value.absent(),
+    Value<DateTime?> startAt = const Value.absent(),
+    DateTime? updatedAt,
+  }) => RaceCourseRow(
+    goalId: goalId ?? this.goalId,
+    courseJson: courseJson ?? this.courseJson,
+    source: source ?? this.source,
+    libraryRaceId: libraryRaceId.present
+        ? libraryRaceId.value
+        : this.libraryRaceId,
+    startAt: startAt.present ? startAt.value : this.startAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RaceCourseRow copyWithCompanion(RaceCoursesCompanion data) {
+    return RaceCourseRow(
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      courseJson: data.courseJson.present
+          ? data.courseJson.value
+          : this.courseJson,
+      source: data.source.present ? data.source.value : this.source,
+      libraryRaceId: data.libraryRaceId.present
+          ? data.libraryRaceId.value
+          : this.libraryRaceId,
+      startAt: data.startAt.present ? data.startAt.value : this.startAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RaceCourseRow(')
+          ..write('goalId: $goalId, ')
+          ..write('courseJson: $courseJson, ')
+          ..write('source: $source, ')
+          ..write('libraryRaceId: $libraryRaceId, ')
+          ..write('startAt: $startAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    goalId,
+    courseJson,
+    source,
+    libraryRaceId,
+    startAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RaceCourseRow &&
+          other.goalId == this.goalId &&
+          other.courseJson == this.courseJson &&
+          other.source == this.source &&
+          other.libraryRaceId == this.libraryRaceId &&
+          other.startAt == this.startAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RaceCoursesCompanion extends UpdateCompanion<RaceCourseRow> {
+  final Value<String> goalId;
+  final Value<String> courseJson;
+  final Value<String> source;
+  final Value<String?> libraryRaceId;
+  final Value<DateTime?> startAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const RaceCoursesCompanion({
+    this.goalId = const Value.absent(),
+    this.courseJson = const Value.absent(),
+    this.source = const Value.absent(),
+    this.libraryRaceId = const Value.absent(),
+    this.startAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RaceCoursesCompanion.insert({
+    required String goalId,
+    required String courseJson,
+    required String source,
+    this.libraryRaceId = const Value.absent(),
+    this.startAt = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : goalId = Value(goalId),
+       courseJson = Value(courseJson),
+       source = Value(source),
+       updatedAt = Value(updatedAt);
+  static Insertable<RaceCourseRow> custom({
+    Expression<String>? goalId,
+    Expression<String>? courseJson,
+    Expression<String>? source,
+    Expression<String>? libraryRaceId,
+    Expression<DateTime>? startAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (goalId != null) 'goal_id': goalId,
+      if (courseJson != null) 'course_json': courseJson,
+      if (source != null) 'source': source,
+      if (libraryRaceId != null) 'library_race_id': libraryRaceId,
+      if (startAt != null) 'start_at': startAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RaceCoursesCompanion copyWith({
+    Value<String>? goalId,
+    Value<String>? courseJson,
+    Value<String>? source,
+    Value<String?>? libraryRaceId,
+    Value<DateTime?>? startAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return RaceCoursesCompanion(
+      goalId: goalId ?? this.goalId,
+      courseJson: courseJson ?? this.courseJson,
+      source: source ?? this.source,
+      libraryRaceId: libraryRaceId ?? this.libraryRaceId,
+      startAt: startAt ?? this.startAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (goalId.present) {
+      map['goal_id'] = Variable<String>(goalId.value);
+    }
+    if (courseJson.present) {
+      map['course_json'] = Variable<String>(courseJson.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (libraryRaceId.present) {
+      map['library_race_id'] = Variable<String>(libraryRaceId.value);
+    }
+    if (startAt.present) {
+      map['start_at'] = Variable<DateTime>(startAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RaceCoursesCompanion(')
+          ..write('goalId: $goalId, ')
+          ..write('courseJson: $courseJson, ')
+          ..write('source: $source, ')
+          ..write('libraryRaceId: $libraryRaceId, ')
+          ..write('startAt: $startAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $CoachMemoriesTable extends CoachMemories
     with TableInfo<$CoachMemoriesTable, CoachMemory> {
   @override
@@ -53393,6 +53828,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GearTable gear = $GearTable(this);
   late final $ActivityGearTable activityGear = $ActivityGearTable(this);
   late final $LabTestsTable labTests = $LabTestsTable(this);
+  late final $RaceCoursesTable raceCourses = $RaceCoursesTable(this);
   late final $CoachMemoriesTable coachMemories = $CoachMemoriesTable(this);
   late final $ProReportsTable proReports = $ProReportsTable(this);
   @override
@@ -53473,6 +53909,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     gear,
     activityGear,
     labTests,
+    raceCourses,
     coachMemories,
     proReports,
   ];
@@ -79310,6 +79747,238 @@ typedef $$LabTestsTableProcessedTableManager =
       LabTestRow,
       PrefetchHooks Function()
     >;
+typedef $$RaceCoursesTableCreateCompanionBuilder =
+    RaceCoursesCompanion Function({
+      required String goalId,
+      required String courseJson,
+      required String source,
+      Value<String?> libraryRaceId,
+      Value<DateTime?> startAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$RaceCoursesTableUpdateCompanionBuilder =
+    RaceCoursesCompanion Function({
+      Value<String> goalId,
+      Value<String> courseJson,
+      Value<String> source,
+      Value<String?> libraryRaceId,
+      Value<DateTime?> startAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$RaceCoursesTableFilterComposer
+    extends Composer<_$AppDatabase, $RaceCoursesTable> {
+  $$RaceCoursesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get goalId => $composableBuilder(
+    column: $table.goalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get courseJson => $composableBuilder(
+    column: $table.courseJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get libraryRaceId => $composableBuilder(
+    column: $table.libraryRaceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startAt => $composableBuilder(
+    column: $table.startAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RaceCoursesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RaceCoursesTable> {
+  $$RaceCoursesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get goalId => $composableBuilder(
+    column: $table.goalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get courseJson => $composableBuilder(
+    column: $table.courseJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get libraryRaceId => $composableBuilder(
+    column: $table.libraryRaceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startAt => $composableBuilder(
+    column: $table.startAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RaceCoursesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RaceCoursesTable> {
+  $$RaceCoursesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get goalId =>
+      $composableBuilder(column: $table.goalId, builder: (column) => column);
+
+  GeneratedColumn<String> get courseJson => $composableBuilder(
+    column: $table.courseJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get libraryRaceId => $composableBuilder(
+    column: $table.libraryRaceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get startAt =>
+      $composableBuilder(column: $table.startAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$RaceCoursesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RaceCoursesTable,
+          RaceCourseRow,
+          $$RaceCoursesTableFilterComposer,
+          $$RaceCoursesTableOrderingComposer,
+          $$RaceCoursesTableAnnotationComposer,
+          $$RaceCoursesTableCreateCompanionBuilder,
+          $$RaceCoursesTableUpdateCompanionBuilder,
+          (
+            RaceCourseRow,
+            BaseReferences<_$AppDatabase, $RaceCoursesTable, RaceCourseRow>,
+          ),
+          RaceCourseRow,
+          PrefetchHooks Function()
+        > {
+  $$RaceCoursesTableTableManager(_$AppDatabase db, $RaceCoursesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RaceCoursesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RaceCoursesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RaceCoursesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> goalId = const Value.absent(),
+                Value<String> courseJson = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> libraryRaceId = const Value.absent(),
+                Value<DateTime?> startAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RaceCoursesCompanion(
+                goalId: goalId,
+                courseJson: courseJson,
+                source: source,
+                libraryRaceId: libraryRaceId,
+                startAt: startAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String goalId,
+                required String courseJson,
+                required String source,
+                Value<String?> libraryRaceId = const Value.absent(),
+                Value<DateTime?> startAt = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RaceCoursesCompanion.insert(
+                goalId: goalId,
+                courseJson: courseJson,
+                source: source,
+                libraryRaceId: libraryRaceId,
+                startAt: startAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RaceCoursesTable, RaceCourseRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $RaceCoursesTable,
+                    RaceCourseRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RaceCoursesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RaceCoursesTable,
+      RaceCourseRow,
+      $$RaceCoursesTableFilterComposer,
+      $$RaceCoursesTableOrderingComposer,
+      $$RaceCoursesTableAnnotationComposer,
+      $$RaceCoursesTableCreateCompanionBuilder,
+      $$RaceCoursesTableUpdateCompanionBuilder,
+      (
+        RaceCourseRow,
+        BaseReferences<_$AppDatabase, $RaceCoursesTable, RaceCourseRow>,
+      ),
+      RaceCourseRow,
+      PrefetchHooks Function()
+    >;
 typedef $$CoachMemoriesTableCreateCompanionBuilder =
     CoachMemoriesCompanion Function({
       required String id,
@@ -79927,6 +80596,8 @@ class $AppDatabaseManager {
       $$ActivityGearTableTableManager(_db, _db.activityGear);
   $$LabTestsTableTableManager get labTests =>
       $$LabTestsTableTableManager(_db, _db.labTests);
+  $$RaceCoursesTableTableManager get raceCourses =>
+      $$RaceCoursesTableTableManager(_db, _db.raceCourses);
   $$CoachMemoriesTableTableManager get coachMemories =>
       $$CoachMemoriesTableTableManager(_db, _db.coachMemories);
   $$ProReportsTableTableManager get proReports =>
