@@ -43,7 +43,8 @@ class SyncServer {
   });
 
   /// Content sent only on request that this device wants from [peer], by
-  /// kind: `ecg` lists ECG recording ids whose waveforms to send.
+  /// kind: `ecg` lists ECG recording ids whose waveforms to send. By
+  /// default what was asked for in the peer's database (`syncWanted`).
   final Future<Map<String, List<String>>> Function(SyncPeer peer)? wanted;
 
   /// Where the paired devices are kept, and the data of the athlete's own
@@ -133,7 +134,7 @@ class SyncServer {
           await writeJson(
             request.response,
             200,
-            await wanted?.call(peer) ?? const <String, List<String>>{},
+            await (wanted?.call(peer) ?? _dataOf(peer).syncWanted()),
           );
         case ('POST', extraPath):
           await _receiveExtra(request, peer);

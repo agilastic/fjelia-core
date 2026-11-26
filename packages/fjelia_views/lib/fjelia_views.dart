@@ -4,7 +4,10 @@
 /// put it into words.
 library;
 
+export 'package:fjelia_core/models/ecg.dart' show EcgChunk, ecgDisplayPoints;
 export 'package:fjelia_core/models/workout_draft.dart';
+export 'package:fjelia_core/services/ecg_analysis.dart'
+    show EcgAnalysis, EcgHeartRate, EcgBlock;
 export 'package:fjelia_core/services/lactate_test.dart';
 export 'package:fjelia_core/services/strength/strength_plan_edits.dart';
 
@@ -12,6 +15,7 @@ export 'src/activities.dart';
 export 'src/analysis.dart';
 export 'src/calendar.dart';
 export 'src/diary.dart';
+export 'src/ecg.dart';
 export 'src/fuel.dart';
 export 'src/gear.dart';
 export 'src/health.dart';

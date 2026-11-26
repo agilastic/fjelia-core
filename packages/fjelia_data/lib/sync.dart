@@ -47,6 +47,11 @@ const _schema = [
       'log_epoch TEXT NOT NULL, applying INTEGER NOT NULL DEFAULT 0)',
   // Paired devices: whose certificate to trust and how far each one's log
   // has been received.
+  // Content sent only on request that this device asked for, by kind
+  // (`ecg`: a recording id). Kept here, never synced.
+  'CREATE TABLE IF NOT EXISTS sync_wanted ('
+      'kind TEXT NOT NULL, id TEXT NOT NULL, asked_at_ms INTEGER NOT NULL, '
+      'PRIMARY KEY (kind, id))',
   'CREATE TABLE IF NOT EXISTS sync_peers ('
       'device_id TEXT PRIMARY KEY, name TEXT NOT NULL, '
       'certificate_sha256 TEXT NOT NULL, paired_at_ms INTEGER NOT NULL, '
@@ -371,6 +376,35 @@ extension SyncStore on AppDatabase {
     ).get())
       List<Object?>.from(jsonDecode(r.read<String>('record_key')) as List),
   ];
+
+  /// Asks the peers for the waveform of ECG recording [recordingId]; it
+  /// comes with the next sync from the phone that has it.
+  Future<void> wantEcgWaveform(String recordingId) => customStatement(
+    'INSERT OR IGNORE INTO sync_wanted (kind, id, asked_at_ms) '
+    "VALUES ('ecg', ?, $_nowMs)",
+    [recordingId],
+  );
+
+  /// Whether the waveform of [recordingId] was asked for.
+  Future<bool> ecgWaveformWanted(String recordingId) async =>
+      await customSelect(
+        "SELECT 1 FROM sync_wanted WHERE kind = 'ecg' AND id = ?",
+        variables: [Variable(recordingId)],
+      ).getSingleOrNull() !=
+      null;
+
+  /// What to ask a peer for: requested content this device does not have
+  /// yet, by kind, as `GET /v1/wanted` returns it.
+  Future<Map<String, List<String>>> syncWanted() async => {
+    'ecg': [
+      for (final r in await customSelect(
+        "SELECT w.id FROM sync_wanted w WHERE w.kind = 'ecg' AND NOT EXISTS "
+        '(SELECT 1 FROM ecg_sample_chunks c WHERE c.recording_id = w.id) '
+        'ORDER BY w.asked_at_ms',
+      ).get())
+        r.read<String>('id'),
+    ],
+  };
 
   Future<void> removeSyncPeer(String deviceId) =>
       customStatement('DELETE FROM sync_peers WHERE device_id = ?', [deviceId]);

@@ -327,10 +327,8 @@ void main() {
       identity: desktopIdentity,
       name: 'Studio Mac',
       port: 0,
-      wanted: (_) async => {
-        'ecg': ['r1'],
-      },
     );
+    await desktopDb.wantEcgWaveform('r1');
     await server.start();
     final desktop = await phone.pair(await offer());
     await phone.sync(desktop);
