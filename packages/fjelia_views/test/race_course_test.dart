@@ -98,4 +98,14 @@ void main() {
     expect(c.single.name, 'Les Contamines');
     expect(c.single.cutoff, DateTime.utc(2026, 8, 28, 22, 30));
   });
+
+  test(
+    'race goals come soonest first, with whether they have a course',
+    () async {
+      await RaceCourseEdits(db).setFromGpx('g1', gpx());
+      final goals = await loadRaceGoals(db, now: now);
+      expect(goals.single.goal.name, 'Hill Race');
+      expect(goals.single.hasCourse, isTrue);
+    },
+  );
 }

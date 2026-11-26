@@ -206,3 +206,41 @@ List<CourseCheckpoint> checkpointsFromLibrary(List<Object?> aidStations) => [
         cutoff: DateTime.tryParse('${a['cutoff']}'),
       ),
 ];
+
+/// A race goal and whether it has a course yet.
+class RaceGoalItem {
+  const RaceGoalItem(this.goal, {required this.hasCourse});
+  final RaceGoal goal;
+  final bool hasCourse;
+
+  bool upcoming(DateTime now) =>
+      !goal.raceDate.isBefore(DateTime(now.year, now.month, now.day));
+}
+
+/// The athlete's race goals, coming ones first (soonest first), then past
+/// ones (latest first). Cancelled goals are left out.
+Future<List<RaceGoalItem>> loadRaceGoals(
+  AppDatabase db, {
+  DateTime? now,
+}) async {
+  final today = now ?? DateTime.now();
+  final goals = await (db.select(
+    db.raceGoals,
+  )..where((g) => g.participation.isNotValue('cancelled'))).get();
+  final withCourse = {
+    for (final c in await db.select(db.raceCourses).get()) c.goalId,
+  };
+  final items = [
+    for (final g in goals)
+      RaceGoalItem(g, hasCourse: withCourse.contains(g.id)),
+  ];
+  final coming = [
+    for (final i in items)
+      if (i.upcoming(today)) i,
+  ]..sort((a, b) => a.goal.raceDate.compareTo(b.goal.raceDate));
+  final past = [
+    for (final i in items)
+      if (!i.upcoming(today)) i,
+  ]..sort((a, b) => b.goal.raceDate.compareTo(a.goal.raceDate));
+  return [...coming, ...past];
+}
