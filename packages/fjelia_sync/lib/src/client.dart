@@ -99,6 +99,7 @@ class SyncClient {
   Future<SyncResult> sync(
     SyncPeer peer, {
     void Function(int sent)? onPage,
+    void Function(int sent, int total)? onProgress,
     bool pull = true,
   }) async {
     final secret = await secrets.read(_secretKey(peer.deviceId));
@@ -106,7 +107,7 @@ class SyncClient {
     final known = peer.address;
     if (known != null) {
       try {
-        return await _exchange(known, peer, secret, onPage, pull);
+        return await _exchange(known, peer, secret, onPage, onProgress, pull);
       } on SyncRefused {
         rethrow; // the peer answered
       } on Object catch (e) {
@@ -119,7 +120,7 @@ class SyncClient {
       throw SocketException('${peer.name} is not on this network');
     }
     await db.setSyncPeerAddress(peer.deviceId, found);
-    return _exchange(found, peer, secret, onPage, pull);
+    return _exchange(found, peer, secret, onPage, onProgress, pull);
   }
 
   Future<SyncResult> _exchange(
@@ -127,6 +128,7 @@ class SyncClient {
     SyncPeer peer,
     String secret,
     void Function(int sent)? onPage,
+    void Function(int sent, int total)? onProgress,
     bool pull,
   ) async {
     final base = Uri.parse('https://$address');
@@ -144,11 +146,18 @@ class SyncClient {
         null,
         headers,
       );
-      if (cursor['schema'] != db.schemaVersion) {
+      // A computer on an older version could not keep what this one sends.
+      if ((cursor['schema'] as int) < db.schemaVersion) {
         throw const SyncRefused(409, 'schema');
       }
       var from = cursor['epoch'] == epoch ? cursor['seq'] as int : 0;
       var sent = 0;
+      final total = await db.syncPendingCount(
+        from,
+        categories: peer.categories,
+        exceptOrigin: peer.deviceId,
+      );
+      onProgress?.call(0, total);
       while (true) {
         final page = await db.syncChangesSince(
           from,
@@ -166,8 +175,35 @@ class SyncClient {
         from = page.last.seq;
         sent += page.length;
         onPage?.call(sent);
+        onProgress?.call(sent, total);
       }
-      if (!pull) return SyncResult(sent: sent, received: 0);
+      // What the peer asked for that is only sent on request.
+      final wanted = await _send(
+        client,
+        'GET',
+        base.replace(path: wantedPath),
+        null,
+        headers,
+      );
+      final ecg = [
+        for (final id in (wanted['ecg'] as List? ?? const [])) '$id',
+      ];
+      if (ecg.isNotEmpty) {
+        final extra = await db.syncChangesFor('ecg_sample_chunks', ecg);
+        for (var i = 0; i < extra.length; i += pageSize) {
+          await _send(client, 'POST', base.replace(path: extraPath), {
+            'schema': db.schemaVersion,
+            'changes': [
+              for (final c in extra.skip(i).take(pageSize)) c.toJson(),
+            ],
+          }, headers);
+        }
+        sent += extra.length;
+      }
+      if (!pull) {
+        await db.setSyncPeerSynced(peer.deviceId, DateTime.now());
+        return SyncResult(sent: sent, received: 0);
+      }
 
       // What the peer has: from where this device left off in its log.
       final known = await db.syncPeer(peer.deviceId);
@@ -197,6 +233,7 @@ class SyncClient {
         ];
         if (changes.isEmpty) {
           await db.setSyncPeerCursor(peer.deviceId, theirEpoch, after);
+          await db.setSyncPeerSynced(peer.deviceId, DateTime.now());
           return SyncResult(sent: sent, received: received);
         }
         received += await db.applySyncChanges(

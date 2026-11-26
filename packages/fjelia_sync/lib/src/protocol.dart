@@ -8,6 +8,8 @@ const defaultSyncPort = 53320;
 const pairPath = '/v1/pair';
 const cursorPath = '/v1/cursor';
 const changesPath = '/v1/changes';
+const wantedPath = '/v1/wanted';
+const extraPath = '/v1/extra';
 
 const deviceHeader = 'x-fjelia-device';
 

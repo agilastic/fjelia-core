@@ -59,6 +59,7 @@ const _addedColumns = [
   ('sync_peers', 'secret_sha256', 'TEXT'),
   ('sync_peers', 'address', 'TEXT'),
   ('sync_peers', 'role', "TEXT NOT NULL DEFAULT 'self'"),
+  ('sync_peers', 'last_synced_ms', 'INTEGER'),
 ];
 
 /// Whose device a peer is: the athlete's own, or (on a coach's computer)
@@ -78,9 +79,13 @@ class SyncPeer {
     this.peerLogEpoch,
     this.receivedSeq = 0,
     this.role = PeerRole.self,
+    this.lastSynced,
   });
 
   final PeerRole role;
+
+  /// When a sync with it last finished.
+  final DateTime? lastSynced;
 
   final String deviceId;
   final String name;
@@ -281,6 +286,73 @@ extension SyncStore on AppDatabase {
         deviceId,
       ]);
 
+  Future<void> setSyncPeerSynced(String deviceId, DateTime at) =>
+      customStatement(
+        'UPDATE sync_peers SET last_synced_ms = ? WHERE device_id = ?',
+        [at.millisecondsSinceEpoch, deviceId],
+      );
+
+  /// How many changes after [afterSeq] a peer would get, as for
+  /// [syncChangesSince].
+  Future<int> syncPendingCount(
+    int afterSeq, {
+    Set<SyncCategory> categories = const {...SyncCategory.values},
+    String? exceptOrigin,
+  }) async {
+    final tables = [
+      for (final t in syncTables)
+        if (categories.contains(t.category) && !t.onRequest) "'${t.name}'",
+    ];
+    if (tables.isEmpty) return 0;
+    return (await customSelect(
+      'SELECT COUNT(*) AS n FROM sync_changes WHERE seq > ? '
+      'AND record_table IN (${tables.join(', ')})'
+      '${exceptOrigin == null ? '' : ' AND (origin_device IS NULL OR origin_device != ?)'}',
+      variables: [
+        Variable.withInt(afterSeq),
+        if (exceptOrigin != null) Variable.withString(exceptOrigin),
+      ],
+    ).getSingle()).read<int>('n');
+  }
+
+  /// The current state of the records of [table] whose first key column is
+  /// one of [firsts], such as the waveform chunks of some ECG recordings:
+  /// content sent only when asked for.
+  Future<List<SyncChange>> syncChangesFor(String table, List<Object> firsts) =>
+      transaction(() async {
+        final t = syncTableNamed(table);
+        if (t == null || t.hasSyncId || firsts.isEmpty) return const [];
+        final marks = List.filled(firsts.length, '?').join(', ');
+        final rows = await customSelect(
+          'SELECT * FROM sync_changes WHERE record_table = ? '
+          "AND json_extract(record_key, '\$[0]') IN ($marks) ORDER BY seq",
+          variables: [Variable(table), for (final f in firsts) Variable(f)],
+        ).get();
+        return [
+          for (final r in rows)
+            SyncChange(
+              seq: r.read<int>('seq'),
+              table: table,
+              key: List<Object?>.from(
+                jsonDecode(r.read<String>('record_key')) as List,
+              ),
+              op: SyncOp.values.byName(r.read<String>('op')),
+              category: t.category,
+              athleteId: r.read<String>('athlete_id'),
+              changedAt: DateTime.fromMillisecondsSinceEpoch(
+                r.read<int>('changed_at_ms'),
+              ),
+              originDevice: r.readNullable<String>('origin_device'),
+              row: r.read<String>('op') == SyncOp.upsert.name
+                  ? await _outgoingRow(
+                      t,
+                      jsonDecode(r.read<String>('record_key')) as List,
+                    )
+                  : null,
+            ),
+        ];
+      });
+
   Future<void> removeSyncPeer(String deviceId) =>
       customStatement('DELETE FROM sync_peers WHERE device_id = ?', [deviceId]);
 
@@ -300,6 +372,10 @@ extension SyncStore on AppDatabase {
     role:
         PeerRole.values.asNameMap()[r.readNullable<String>('role')] ??
         PeerRole.self,
+    lastSynced: switch (r.readNullable<int>('last_synced_ms')) {
+      null => null,
+      final ms => DateTime.fromMillisecondsSinceEpoch(ms),
+    },
   );
 
   /// Up to [limit] changes after [afterSeq] in [categories], each upsert

@@ -303,6 +303,46 @@ void main() {
     );
   });
 
+  test('progress has a total, and both sides remember the sync', () async {
+    for (var i = 0; i < 5; i++) {
+      await run('p$i');
+    }
+    final desktop = await phone.pair(await offer());
+    final seen = <(int, int)>[];
+    await phone.sync(desktop, onProgress: (s, t) => seen.add((s, t)));
+    expect(seen.first, (0, 5));
+    expect(seen.last, (5, 5));
+    expect((await phoneDb.syncPeer(desktop.deviceId))!.lastSynced, isNotNull);
+    expect((await desktopDb.syncPeers()).single.lastSynced, isNotNull);
+  });
+
+  test('the computer asks for an ECG waveform and gets it', () async {
+    await phoneDb.customStatement(
+      "INSERT INTO ecg_sample_chunks VALUES ('r1', 0, '[1,2]'), "
+      "('r1', 1, '[3,4]'), ('r2', 0, '[5]')",
+    );
+    await server.stop();
+    server = SyncServer(
+      db: desktopDb,
+      identity: desktopIdentity,
+      name: 'Studio Mac',
+      port: 0,
+      wanted: (_) async => {
+        'ecg': ['r1'],
+      },
+    );
+    await server.start();
+    final desktop = await phone.pair(await offer());
+    await phone.sync(desktop);
+    final chunks = await desktopDb
+        .customSelect('SELECT recording_id FROM ecg_sample_chunks')
+        .get();
+    expect(
+      [for (final c in chunks) c.read<String>('recording_id')],
+      ['r1', 'r1'],
+    );
+  });
+
   test('unpairing ends it on both devices', () async {
     final desktop = await phone.pair(await offer());
     await phone.unpair(desktop);

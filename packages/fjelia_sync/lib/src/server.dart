@@ -39,7 +39,12 @@ class SyncServer {
     this.port = defaultSyncPort,
     this.offerLifetime = const Duration(minutes: 5),
     this.databaseOf,
+    this.wanted,
   });
+
+  /// Content sent only on request that this device wants from [peer], by
+  /// kind: `ecg` lists ECG recording ids whose waveforms to send.
+  final Future<Map<String, List<String>>> Function(SyncPeer peer)? wanted;
 
   /// Where the paired devices are kept, and the data of the athlete's own
   /// devices.
@@ -124,6 +129,14 @@ class SyncServer {
           await _receive(request, peer);
         case ('GET', changesPath):
           await _send(request, peer);
+        case ('GET', wantedPath):
+          await writeJson(
+            request.response,
+            200,
+            await wanted?.call(peer) ?? const <String, List<String>>{},
+          );
+        case ('POST', extraPath):
+          await _receiveExtra(request, peer);
         case ('DELETE', pairPath):
           await db.removeSyncPeer(peer.deviceId);
           _events.add(PeerUnpaired(peer));
@@ -185,7 +198,9 @@ class SyncServer {
   Future<void> _receive(HttpRequest request, SyncPeer peer) async {
     final body = await readJson(request, maxBytes: 256 << 20) as Map;
     final data = _dataOf(peer);
-    if (body['schema'] != data.schemaVersion) {
+    // An older phone is fine: what it lacks it does not send. A newer one
+    // may send what this version cannot keep.
+    if ((body['schema'] as int) > data.schemaVersion) {
       return writeJson(request.response, 409, {
         'error': 'schema',
         'schema': data.schemaVersion,
@@ -220,10 +235,27 @@ class SyncServer {
       epoch,
       changes.isEmpty ? from : changes.last.seq,
     );
+    await db.setSyncPeerSynced(peer.deviceId, DateTime.now());
     _events.add(ChangesReceived(peer, changes.length));
     await writeJson(request.response, 200, {
       'seq': changes.isEmpty ? from : changes.last.seq,
     });
+  }
+
+  /// Content asked for, outside the log's order: no cursor moves.
+  Future<void> _receiveExtra(HttpRequest request, SyncPeer peer) async {
+    final body = await readJson(request, maxBytes: 256 << 20) as Map;
+    final data = _dataOf(peer);
+    if ((body['schema'] as int) > data.schemaVersion) {
+      return writeJson(request.response, 409, {'error': 'schema'});
+    }
+    final changes = [
+      for (final c in body['changes'] as List)
+        SyncChange.fromJson((c as Map).cast<String, Object?>()),
+    ];
+    await data.applySyncChanges(changes, fromDevice: peer.deviceId);
+    _events.add(ChangesReceived(peer, changes.length));
+    await writeJson(request.response, 200, {'taken': changes.length});
   }
 
   /// What this device has that [peer] does not: its own changes and those
