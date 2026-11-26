@@ -1,12 +1,17 @@
 import 'dart:math';
 
 import 'package:drift/drift.dart';
+import 'package:fjelia_core/models/strength_workout.dart';
 import 'package:fjelia_core/models/workout_draft.dart';
 import 'package:fjelia_core/services/plan_workout_builder.dart';
 import 'package:fjelia_core/services/season/goal_set.dart';
 import 'package:fjelia_core/services/season/season_goal.dart';
+import 'package:fjelia_core/services/strength/strength_plan_edits.dart';
+import 'package:fjelia_core/services/workout_semantics.dart';
 import 'package:fjelia_core/utils/week.dart';
 import 'package:fjelia_data/database.dart';
+
+import 'strength_plans.dart';
 
 DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
 
@@ -351,6 +356,38 @@ class PlanEdits {
 
   /// A new workout of [sport] on [day], built from [draft]. It belongs to
   /// the active plan when there is one.
+  /// A strength workout on [day] with [plan], kept in the strength plan
+  /// store under the new session. Its planned time comes from the plan and
+  /// its load counts that time at zone 3, as the season planner does.
+  Future<TrainingSession> createStrength(
+    DateTime day, {
+    required String title,
+    required StrengthWorkoutPlan plan,
+  }) async {
+    final minutes = strengthPlanMinutes(plan);
+    final session = await create(
+      day,
+      sport: 'strength',
+      title: title,
+      draft: const WorkoutDraft([]),
+    );
+    await (db.update(
+      db.trainingSessions,
+    )..where((t) => t.id.equals(session.id))).write(
+      TrainingSessionsCompanion(
+        stepsJson: const Value(null),
+        primaryZone: const Value(3),
+        plannedDurationMin: Value(minutes),
+        plannedTrimp: Value(
+          (minutes * WorkoutSemantics.zoneWeights[2]).round(),
+        ),
+      ),
+    );
+    await StrengthPlans(db)
+        .save(StrengthPlanOwner.session(session.id), plan, expectedRevision: 0);
+    return this.session(session.id);
+  }
+
   Future<TrainingSession> create(
     DateTime day, {
     required String sport,

@@ -262,3 +262,32 @@ bool historyApplies(StrengthPlannedExercise e, StrengthHistoryEntry entry) {
   return entry.sets.length == working.length &&
       entry.sets.every((s) => s.load != null);
 }
+
+/// Seconds a repetition takes in the duration estimate.
+const strengthSecondsPerRep = 4;
+
+/// How long [plan] takes, in minutes: its own estimate when it has one,
+/// else the work of every set (repetitions at [strengthSecondsPerRep] or the
+/// set's time) and the rests between. A planning estimate, not a timer.
+int strengthPlanMinutes(StrengthWorkoutPlan plan) {
+  if (plan.estimatedMinutes case final m?) return m;
+  var seconds = 0;
+  for (final b in plan.blocks) {
+    for (final e in b.exercises) {
+      for (final s in e.sets) {
+        final reps = s.reps ?? s.repMax ?? s.repMin ?? 10;
+        final perSide = e.convention.side == StrengthSide.unilateral ? 2 : 1;
+        seconds += s.durationSeconds ?? reps * strengthSecondsPerRep * perSide;
+        // Within a superset or circuit the block's rests apply instead.
+        if (!b.grouped) seconds += s.restSeconds ?? 0;
+      }
+      if (b.grouped) {
+        seconds += (b.restBetweenExercisesSeconds ?? 0) * b.rounds;
+      }
+    }
+    if (b.grouped && b.rounds > 1) {
+      seconds += (b.restBetweenRoundsSeconds ?? 0) * (b.rounds - 1);
+    }
+  }
+  return (seconds / 60).ceil();
+}

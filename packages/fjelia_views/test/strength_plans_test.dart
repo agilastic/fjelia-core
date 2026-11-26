@@ -66,4 +66,20 @@ void main() {
     expect(all.last.name, 'Copenhagen plank');
     expect(exercise(builtInStrengthVariants.first.id).id, isNotEmpty);
   });
+
+  test('a strength workout is planned on a day with its plan', () async {
+    final plan = const StrengthWorkoutPlan(blocks: [])
+        .addExercise(builtInStrengthVariants.first)
+        .addExercise(builtInStrengthVariants[1]);
+    // One set of 10 each at 4 s a repetition, with 90 s rest: 2 × 130 s.
+    expect(strengthPlanMinutes(plan), 5);
+    final s = await PlanEdits(db)
+        .createStrength(DateTime(2026, 12, 2), title: 'Legs', plan: plan);
+    expect(s.sport, 'strength');
+    expect(s.stepsJson, isNull);
+    expect(s.plannedDurationMin, 5);
+    final stored = await StrengthPlans(db)
+        .load(StrengthPlanOwner.session(s.id));
+    expect(stored!.plan.blocks, hasLength(2));
+  });
 }
