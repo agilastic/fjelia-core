@@ -4,10 +4,11 @@ import 'dart:typed_data';
 import 'package:basic_utils/basic_utils.dart';
 
 /// The public half of the key fjelia-service signs FjeliaPro passes with
-/// (PRO_PASS_KEY_PATH there). A new key needs a new release.
+/// (PRO_PASS_KEY_PATH there; made on the server, never copied off it). A
+/// new key needs a new release until passes carry a key id.
 const proPassPublicKey = '''-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEA2POdK7Ct4HM8uNJ0Pp26kowkp0F
-pRnqvnR8/KKBObgYf9ZkmArdAStc0mRHDBRQZcdfFeazJBr6jubWktnFAQ==
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEyErK5Ck+qRakU6NqVRe+QffmdPHH
+LuT0gThRzJOCnR97P/M5EnUcPI0MZra2EXNozvHQmUwSgZo3QrM5+T3YyA==
 -----END PUBLIC KEY-----''';
 
 /// When the FjeliaPro of [pass] ends, or null when it is not a pass signed
