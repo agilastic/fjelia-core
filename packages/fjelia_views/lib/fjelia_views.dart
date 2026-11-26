@@ -11,6 +11,8 @@ export 'package:fjelia_core/services/course/course_prediction.dart';
 export 'package:fjelia_core/services/course/course_profile.dart';
 export 'package:fjelia_core/services/course/grade_pace.dart';
 export 'package:fjelia_core/services/course/race_plan.dart';
+export 'package:fjelia_core/services/course/race_readiness.dart';
+export 'package:fjelia_core/services/course/race_result.dart';
 export 'package:fjelia_core/services/course/sun.dart';
 export 'package:fjelia_core/services/ecg_analysis.dart'
     show EcgAnalysis, EcgHeartRate, EcgBlock;

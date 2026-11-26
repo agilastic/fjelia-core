@@ -102,6 +102,11 @@ void main() {
     view = (await loadRaceCourse(db, 'g1', now: now, texts: _Texts()))!;
     final plan = view.plan!;
     expect(plan.seconds, closeTo(view.prediction!.seconds + 180, 1));
+    // Readiness from the two runs of the last eight weeks.
+    expect(view.readiness!.runs, 2);
+    expect(view.readiness!.courseClimb, closeTo(400, 10));
+    // Not run yet: no result.
+    expect(view.result, isNull);
     final fuel = view.fuelFor(plan.legs.first)!;
     expect(
       fuel.carbs,
@@ -128,4 +133,48 @@ void main() {
       expect(goals.single.hasCourse, isTrue);
     },
   );
+
+  test('after the race: each checkpoint as planned and as run', () async {
+    await db
+        .into(db.raceGoals)
+        .insert(
+          RaceGoalsCompanion.insert(
+            id: 'done',
+            athleteId: 'self',
+            name: 'Past Race',
+            primarySport: 'trail_running',
+            distanceM: 10000,
+            raceDate: DateTime(2026, 11, 22),
+            priority: 'B',
+            source: 'manual',
+            createdAt: now,
+          ),
+        );
+    await RaceCourseEdits(db).setFromGpx('done', gpx());
+    await run('flat', 0, 330);
+    await run('hill', 0.08, 480);
+    // The race itself: 10 km in 90 minutes on race day.
+    await db
+        .into(db.activityRecords)
+        .insert(
+          ActivityRecordsCompanion.insert(
+            activityId: 'race',
+            name: 'Past Race',
+            type: 'trail_running',
+            startDate: DateTime(2026, 11, 22, 9),
+            durationSeconds: 5400,
+            metricsJson: Value(
+              jsonEncode([
+                for (var s = 0; s <= 5400; s += 10)
+                  {'t': s * 1000, 'd': s / 540 * 1000},
+              ]),
+            ),
+          ),
+        );
+    final view = (await loadRaceCourse(db, 'done', now: now))!;
+    final r = view.result!;
+    expect(r.legs.map((l) => l.planned.leg.to), ['Top', 'Finish']);
+    expect(r.seconds, 5400);
+    expect(r.legs.first.arrival, closeTo(2700, 15));
+  });
 }

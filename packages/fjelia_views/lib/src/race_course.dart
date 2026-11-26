@@ -8,6 +8,8 @@ import 'package:fjelia_core/services/course/course_profile.dart';
 import 'package:fjelia_core/models/workout_nutrition.dart';
 import 'package:fjelia_core/services/course/grade_pace.dart';
 import 'package:fjelia_core/services/course/race_plan.dart';
+import 'package:fjelia_core/services/course/race_readiness.dart';
+import 'package:fjelia_core/services/course/race_result.dart';
 import 'package:fjelia_data/database.dart';
 
 import 'fuel.dart' show loadNutritionPreferences;
@@ -31,6 +33,8 @@ class RaceCourseView {
     this.prediction,
     this.plan,
     this.fuel,
+    this.readiness,
+    this.result,
   });
   final RaceGoal goal;
   final Course course;
@@ -49,6 +53,13 @@ class RaceCourseView {
   /// The prediction with race-day conditions (night, heat, stops) from the
   /// course's settings; null without a prediction.
   final RacePlan? plan;
+
+  /// The last [readinessDays] of running next to what the course asks for.
+  final RaceReadiness? readiness;
+
+  /// Once the race was run and recorded: each checkpoint as planned and as
+  /// run.
+  final RaceResult? result;
 
   /// Carbohydrate, fluid and sodium per hour from the Fuel planning, for the
   /// race's length and expected heat; null without a plan.
@@ -77,38 +88,66 @@ class RaceCourseView {
   }
 }
 
+/// Weeks of training race readiness looks at.
+const readinessDays = 56;
+
+/// The runs since [since], with their samples where recorded: the one
+/// place the course features read recorded runs.
+Future<List<TrainingRun>> loadRecentRuns(
+  AppDatabase db, {
+  required DateTime since,
+  DateTime? until,
+}) async {
+  final rows =
+      await (db.select(db.activityRecords)..where(
+            (a) =>
+                a.startDate.isBiggerOrEqualValue(since) &
+                (until == null
+                    ? const Constant(true)
+                    : a.startDate.isSmallerThanValue(until)),
+          ))
+          .get();
+  return [
+    for (final r in rows)
+      if (activityKind(r.type) == ActivityKind.running)
+        TrainingRun(
+          start: r.startDate,
+          seconds: r.movingDurationSeconds ?? r.durationSeconds,
+          gain: r.totalElevation,
+          samples: _samples(r.metricsJson),
+        ),
+  ];
+}
+
+List<Map<String, num>> _samples(String? json) {
+  if (json == null) return const [];
+  try {
+    return [
+      for (final s in jsonDecode(json) as List) (s as Map).cast<String, num>(),
+    ];
+  } on Object {
+    return const [];
+  }
+}
+
 /// The athlete's pace per grade from the runs of the last
 /// [gradeTableDays] that recorded altitude.
 Future<GradePaceTable?> loadGradePaceTable(
   AppDatabase db, {
   DateTime? now,
-}) async {
-  final since = (now ?? DateTime.now()).subtract(
-    const Duration(days: gradeTableDays),
-  );
-  final rows =
-      await (db.select(db.activityRecords)..where(
-            (a) =>
-                a.startDate.isBiggerOrEqualValue(since) &
-                a.metricsJson.isNotNull(),
-          ))
-          .get();
-  final runs = <List<Map<String, num>>>[];
-  for (final r in rows) {
-    if (activityKind(r.type) != ActivityKind.running) continue;
-    final json = r.metricsJson!;
-    if (!json.contains('"ele"')) continue;
-    try {
-      runs.add([
-        for (final s in jsonDecode(json) as List)
-          (s as Map).cast<String, num>(),
-      ]);
-    } on Object {
-      continue;
-    }
-  }
-  return buildGradePaceTable(runs);
-}
+}) async => _gradeTable(
+  await loadRecentRuns(
+    db,
+    since: (now ?? DateTime.now()).subtract(
+      const Duration(days: gradeTableDays),
+    ),
+  ),
+);
+
+GradePaceTable? _gradeTable(List<TrainingRun> runs) => buildGradePaceTable([
+  for (final r in runs)
+    if (r.samples.any((x) => x.containsKey('ele'))) r.samples,
+]);
 
 /// The course of [goalId] with its analysis and prediction, or null when it
 /// has none. With [texts] (the app's wording for the Fuel planning) it also
@@ -129,7 +168,12 @@ Future<RaceCourseView?> loadRaceCourse(
   final course = Course.fromJson(row.courseJson);
   if (course == null) return null;
   final profile = analyseCourse(course);
-  final table = await loadGradePaceTable(db, now: now);
+  final today = now ?? DateTime.now();
+  final runs = await loadRecentRuns(
+    db,
+    since: today.subtract(const Duration(days: gradeTableDays)),
+  );
+  final table = _gradeTable(runs);
   final prediction = profile == null || table == null
       ? null
       : predictCourse(course, profile, table: table);
@@ -150,6 +194,20 @@ Future<RaceCourseView?> loadRaceCourse(
     table: table,
     prediction: prediction,
     plan: plan,
+    readiness: profile == null
+        ? null
+        : raceReadiness(
+            [
+              for (final r in runs)
+                if (r.start.isAfter(
+                  today.subtract(const Duration(days: readinessDays)),
+                ))
+                  r,
+            ],
+            profile,
+            plan?.seconds ?? 0,
+          ),
+    result: plan == null ? null : await _raceDay(db, goal, course, plan),
     fuel: plan == null || texts == null
         ? null
         : planNutritionWith(
@@ -305,4 +363,26 @@ Future<List<RaceGoalItem>> loadRaceGoals(
       if (!i.upcoming(today)) i,
   ]..sort((a, b) => b.goal.raceDate.compareTo(a.goal.raceDate));
   return [...coming, ...past];
+}
+
+/// The longest run recorded on race day, compared with [plan].
+Future<RaceResult?> _raceDay(
+  AppDatabase db,
+  RaceGoal goal,
+  Course course,
+  RacePlan plan,
+) async {
+  final day = DateTime(
+    goal.raceDate.year,
+    goal.raceDate.month,
+    goal.raceDate.day,
+  );
+  final runs = await loadRecentRuns(
+    db,
+    since: day,
+    until: day.add(const Duration(days: 1)),
+  );
+  if (runs.isEmpty) return null;
+  final race = runs.reduce((a, b) => a.seconds >= b.seconds ? a : b);
+  return compareRace(course, plan, race.samples);
 }
