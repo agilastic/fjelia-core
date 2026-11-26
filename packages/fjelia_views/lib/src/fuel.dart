@@ -51,9 +51,7 @@ Future<FuelView> loadFuel(
     }
   }
 
-  final preferences = NutritionPreferences.fromJson(
-    json('nutrition:preferences') ?? const {},
-  );
+  final preferences = await loadNutritionPreferences(db);
   final sessions =
       await (db.select(db.trainingSessions)
             ..where(
@@ -96,4 +94,20 @@ Future<FuelView> loadFuel(
           ),
     ],
   );
+}
+
+/// The athlete's fuel preferences (the Fuel planning's settings).
+Future<NutritionPreferences> loadNutritionPreferences(AppDatabase db) async {
+  final r =
+      await (db.select(db.nutritionRecords)
+            ..where((n) => n.recordKey.equals('nutrition:preferences')))
+          .getSingleOrNull();
+  if (r == null) return const NutritionPreferences();
+  try {
+    return NutritionPreferences.fromJson(
+      (jsonDecode(r.dataJson) as Map).cast<String, dynamic>(),
+    );
+  } on Object {
+    return const NutritionPreferences();
+  }
 }

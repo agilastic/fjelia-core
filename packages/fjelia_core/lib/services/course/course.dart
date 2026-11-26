@@ -1,7 +1,9 @@
 import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
+
+import '../../utils/geo.dart';
+import 'race_plan.dart';
 
 /// A point of a race course: where it is, how high, and how far along.
 class CoursePoint {
@@ -68,10 +70,18 @@ class CourseCheckpoint {
 
 /// A race course: the track from a GPX file and its checkpoints.
 class Course {
-  const Course({required this.points, this.name, this.checkpoints = const []});
+  const Course({
+    required this.points,
+    this.name,
+    this.checkpoints = const [],
+    this.settings = const RacePlanSettings(),
+  });
   final String? name;
   final List<CoursePoint> points;
   final List<CourseCheckpoint> checkpoints;
+
+  /// What the athlete expects of race day.
+  final RacePlanSettings settings;
 
   double get distanceM => points.isEmpty ? 0 : points.last.distanceM;
   bool get hasElevation => points.any((p) => p.ele != null);
@@ -80,12 +90,17 @@ class Course {
     points: points,
     name: name,
     checkpoints: [...c]..sort((a, b) => a.km.compareTo(b.km)),
+    settings: settings,
   );
+
+  Course withSettings(RacePlanSettings s) =>
+      Course(points: points, name: name, checkpoints: checkpoints, settings: s);
 
   String toJson() => jsonEncode({
     'name': ?name,
     'points': [for (final p in points) p.toJson()],
     'checkpoints': [for (final c in checkpoints) c.toJson()],
+    'plan': settings.toJson(),
   });
 
   static Course? fromJson(String? s) {
@@ -101,6 +116,7 @@ class Course {
           for (final c in (j['checkpoints'] as List? ?? const []))
             CourseCheckpoint.fromJson(c as Map),
         ],
+        settings: RacePlanSettings.fromJson(j['plan']),
       );
     } on Object {
       return null;
@@ -144,7 +160,7 @@ Course? parseCourseGpx(String xml) {
     final d = points.isEmpty
         ? 0.0
         : points.last.distanceM +
-              haversineM(points.last.lat, points.last.lng, p.$1, p.$2);
+              greatCircleMeters(points.last.lat, points.last.lng, p.$1, p.$2);
     points.add(
       CoursePoint(p.$1, p.$2, ele != null && ele.isFinite ? ele : null, d),
     );
@@ -158,7 +174,7 @@ Course? parseCourseGpx(String xml) {
     var best = points.first;
     var bestD = double.infinity;
     for (final q in points) {
-      final d = haversineM(q.lat, q.lng, p.$1, p.$2);
+      final d = greatCircleMeters(q.lat, q.lng, p.$1, p.$2);
       if (d < bestD) {
         bestD = d;
         best = q;
@@ -183,17 +199,4 @@ Course? parseCourseGpx(String xml) {
     points: points,
     checkpoints: checkpoints..sort((a, b) => a.km.compareTo(b.km)),
   );
-}
-
-/// Great-circle distance in metres.
-double haversineM(double lat1, double lng1, double lat2, double lng2) {
-  const r = 6371000.0;
-  double rad(double d) => d * math.pi / 180;
-  final dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1);
-  final a =
-      math.pow(math.sin(dLat / 2), 2) +
-      math.cos(rad(lat1)) *
-          math.cos(rad(lat2)) *
-          math.pow(math.sin(dLng / 2), 2);
-  return 2 * r * math.asin(math.sqrt(a));
 }

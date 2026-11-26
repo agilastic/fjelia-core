@@ -243,3 +243,35 @@ List<CourseClimb> _climbs(
   close();
   return out;
 }
+
+/// `+8 %` or `−12 %` for a grade given as a fraction.
+String formatGrade(double grade) =>
+    '${grade >= 0 ? '+' : '−'}${(grade.abs() * 100).round()} %';
+
+/// The colour of a grade as 0xAARRGGBB, the same on every screen: blue
+/// going down steeply, green on the flat, red going up steeply, blended in
+/// between.
+int gradeArgb(double grade) {
+  const stops = [
+    (-0.20, 0xFF1E5BD8),
+    (-0.08, 0xFF4FA8F0),
+    (0.0, 0xFF34C759),
+    (0.08, 0xFFFFB13D),
+    (0.20, 0xFFE5383B),
+  ];
+  if (grade <= stops.first.$1) return stops.first.$2;
+  if (grade >= stops.last.$1) return stops.last.$2;
+  for (var i = 1; i < stops.length; i++) {
+    if (grade <= stops[i].$1) {
+      final t = (grade - stops[i - 1].$1) / (stops[i].$1 - stops[i - 1].$1);
+      int channel(int shift) {
+        final a = (stops[i - 1].$2 >> shift) & 0xFF;
+        final b = (stops[i].$2 >> shift) & 0xFF;
+        return (a + (b - a) * t).round();
+      }
+
+      return 0xFF000000 | channel(16) << 16 | channel(8) << 8 | channel(0);
+    }
+  }
+  return stops.last.$2;
+}

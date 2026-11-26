@@ -5,8 +5,12 @@ import 'package:fjelia_core/services/activity_kind.dart';
 import 'package:fjelia_core/services/course/course.dart';
 import 'package:fjelia_core/services/course/course_prediction.dart';
 import 'package:fjelia_core/services/course/course_profile.dart';
+import 'package:fjelia_core/models/workout_nutrition.dart';
 import 'package:fjelia_core/services/course/grade_pace.dart';
+import 'package:fjelia_core/services/course/race_plan.dart';
 import 'package:fjelia_data/database.dart';
+
+import 'fuel.dart' show loadNutritionPreferences;
 
 /// Runs this far back make the athlete's own grade table.
 const gradeTableDays = 180;
@@ -25,6 +29,8 @@ class RaceCourseView {
     this.profile,
     this.table,
     this.prediction,
+    this.plan,
+    this.fuel,
   });
   final RaceGoal goal;
   final Course course;
@@ -40,13 +46,34 @@ class RaceCourseView {
   /// Null without a profile or a table.
   final CoursePrediction? prediction;
 
+  /// The prediction with race-day conditions (night, heat, stops) from the
+  /// course's settings; null without a prediction.
+  final RacePlan? plan;
+
+  /// Carbohydrate, fluid and sodium per hour from the Fuel planning, for the
+  /// race's length and expected heat; null without a plan.
+  final NutritionStrategy? fuel;
+
   /// The margin to the cut-off at the end of [leg], when there is one and
   /// the start time is known: positive when ahead of it.
-  Duration? marginAt(CourseLeg leg) {
-    final cutoff = leg.cutoff(course);
+  Duration? marginAt(PlannedLeg leg) {
+    final cutoff = leg.leg.cutoff(course);
     final start = startAt;
     if (cutoff == null || start == null) return null;
     return cutoff.difference(start.add(Duration(seconds: leg.arrival.round())));
+  }
+
+  /// What to take on [leg]: grams of carbohydrate, millilitres to drink,
+  /// milligrams of sodium, at the Fuel planning's hourly rates.
+  ({double carbs, double fluid, double sodium})? fuelFor(PlannedLeg leg) {
+    final f = fuel;
+    if (f == null) return null;
+    final hours = leg.seconds / 3600;
+    return (
+      carbs: f.carbs * hours,
+      fluid: f.fluid * hours,
+      sodium: f.sodium * hours,
+    );
   }
 }
 
@@ -84,11 +111,13 @@ Future<GradePaceTable?> loadGradePaceTable(
 }
 
 /// The course of [goalId] with its analysis and prediction, or null when it
-/// has none.
+/// has none. With [texts] (the app's wording for the Fuel planning) it also
+/// plans the fuel per leg.
 Future<RaceCourseView?> loadRaceCourse(
   AppDatabase db,
   String goalId, {
   DateTime? now,
+  NutritionTexts? texts,
 }) async {
   final row = await (db.select(
     db.raceCourses,
@@ -101,6 +130,17 @@ Future<RaceCourseView?> loadRaceCourse(
   if (course == null) return null;
   final profile = analyseCourse(course);
   final table = await loadGradePaceTable(db, now: now);
+  final prediction = profile == null || table == null
+      ? null
+      : predictCourse(course, profile, table: table);
+  final plan = prediction == null
+      ? null
+      : planRace(
+          course,
+          prediction,
+          start: row.startAt,
+          settings: course.settings,
+        );
   return RaceCourseView(
     goal: goal,
     course: course,
@@ -108,9 +148,27 @@ Future<RaceCourseView?> loadRaceCourse(
     startAt: row.startAt,
     profile: profile,
     table: table,
-    prediction: profile == null || table == null
+    prediction: prediction,
+    plan: plan,
+    fuel: plan == null || texts == null
         ? null
-        : predictCourse(course, profile, table: table),
+        : planNutritionWith(
+            texts,
+            NutritionWorkout(
+              key: 'race:$goalId',
+              title: goal.name,
+              sport: goal.primarySport,
+              date: goal.raceDate,
+              minutes: plan.seconds / 60,
+              zone: 2,
+            ),
+            await loadNutritionPreferences(db),
+            NutritionConditions(
+              temperature: course.settings.highTempC,
+              ascent: profile?.gain,
+            ),
+            now: now,
+          ),
   );
 }
 
@@ -165,6 +223,10 @@ class RaceCourseEdits {
     String goalId,
     List<CourseCheckpoint> checkpoints,
   ) => _change(goalId, (c) => c.withCheckpoints(checkpoints));
+
+  /// Race-day expectations: heat, night, stops.
+  Future<void> setSettings(String goalId, RacePlanSettings settings) =>
+      _change(goalId, (c) => c.withSettings(settings));
 
   Future<void> setStart(String goalId, DateTime? startAt) =>
       (db.update(db.raceCourses)..where((c) => c.goalId.equals(goalId))).write(

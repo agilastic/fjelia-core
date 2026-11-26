@@ -95,4 +95,13 @@ void main() {
     expect(r.legs.last.arrival, r.seconds);
     expect(r.slowest, greaterThan(r.seconds));
   });
+
+  test('grades read and colour the same everywhere', () {
+    expect(formatGrade(0.084), '+8 %');
+    expect(formatGrade(-0.12), '−12 %');
+    expect(gradeArgb(0), 0xFF34C759);
+    expect(gradeArgb(0.5), 0xFFE5383B);
+    // Halfway between green and orange.
+    expect(gradeArgb(0.04), 0xFF9ABC4B);
+  });
 }

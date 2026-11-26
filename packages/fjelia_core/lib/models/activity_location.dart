@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import '../utils/geo.dart';
 
 /// An observed fix, with the device's timestamp and horizontal uncertainty.
 class ActivityLocation {
@@ -44,15 +44,6 @@ class ActivityLocation {
     );
   }
 
-  double distanceTo(ActivityLocation other) {
-    const radians = math.pi / 180;
-    final dLat = (other.latitude - latitude) * radians;
-    final dLng = (other.longitude - longitude) * radians;
-    final a =
-        math.pow(math.sin(dLat / 2), 2) +
-        math.cos(latitude * radians) *
-            math.cos(other.latitude * radians) *
-            math.pow(math.sin(dLng / 2), 2);
-    return 6371000 * 2 * math.asin(math.sqrt(a.clamp(0, 1)));
-  }
+  double distanceTo(ActivityLocation other) =>
+      greatCircleMeters(latitude, longitude, other.latitude, other.longitude);
 }

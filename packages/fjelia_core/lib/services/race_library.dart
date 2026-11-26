@@ -1,9 +1,83 @@
-/// The public race library at races.fjelia.com: what it answers, read the
-/// same way on the phone and the computer. The apps fetch; this reads.
+/// The public race library at races.fjelia.com, the same on the phone and
+/// the computer. fjelia_core does no network I/O, so each app hands in how
+/// to fetch a page; everything else is here.
 library;
+
+import 'dart:async';
+import 'dart:convert';
 
 /// The library's address.
 final raceLibraryBase = Uri.parse('https://races.fjelia.com');
+
+/// Fetches [url] and gives the body when the answer is 200, else null. The
+/// app's HTTP client in a line.
+typedef RaceLibraryFetch = Future<({int status, List<int> body})> Function(
+  Uri url,
+);
+
+/// Typeahead for race names, an edition's distances, and a distance's
+/// course GPX. Only the typed text goes out; nothing about the user. Any
+/// failure gives nothing, so entering a race or a GPX file by hand always
+/// works.
+class RaceLibrary {
+  RaceLibrary(this._fetch, {Uri? base}) : _base = base ?? raceLibraryBase;
+
+  final RaceLibraryFetch _fetch;
+  final Uri _base;
+  static const _timeout = Duration(seconds: 8);
+
+  /// Races whose name or town matches [query]; empty under 3 characters.
+  Future<List<RaceHit>> search(String query) async {
+    final q = query.trim();
+    if (q.length < 3) return const [];
+    final json = await _json('/v1/search', {
+      'q': q.length > 80 ? q.substring(0, 80) : q,
+      'limit': '8',
+    });
+    return json == null ? const [] : parseRaceHits(json);
+  }
+
+  /// The edition's races (distances), longest first; null when unavailable.
+  Future<RaceEdition?> edition(String id) async {
+    final json = await _json('/v1/editions/${Uri.encodeComponent(id)}', {});
+    return json == null ? null : parseRaceEdition(json);
+  }
+
+  /// The course GPX of [race], or null when the library has none or it
+  /// cannot be fetched. The library forwards to the organiser's file.
+  Future<String?> courseGpx(RaceDistance race) async {
+    final path = race.gpxPath;
+    if (path == null) return null;
+    final body = await _get(_base.resolve(path), const Duration(seconds: 30));
+    return body == null ? null : utf8.decode(body, allowMalformed: true);
+  }
+
+  Future<Map<String, dynamic>?> _json(
+    String path,
+    Map<String, String> query,
+  ) async {
+    final body = await _get(
+      _base.replace(path: path, queryParameters: query),
+      _timeout,
+    );
+    if (body == null) return null;
+    try {
+      final json = jsonDecode(utf8.decode(body));
+      return json is Map<String, dynamic> ? json : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  Future<List<int>?> _get(Uri url, Duration timeout) async {
+    try {
+      final r = await _fetch(url).timeout(timeout);
+      return r.status == 200 ? r.body : null;
+    } on Object {
+      return null;
+    }
+  }
+}
 
 /// A search hit with its next (or latest) edition.
 class RaceHit {

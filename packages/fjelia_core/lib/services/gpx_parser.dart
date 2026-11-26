@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+import '../utils/geo.dart';
 
 import 'package:xml/xml.dart';
 
@@ -61,7 +61,7 @@ GpxTrack? parseGpx(String xml) {
     }
     route.add({'lat': lat, 'lng': lng});
     if (lastLat != null && lastLng != null) {
-      distance += _haversine(lastLat, lastLng, lat, lng);
+      distance += greatCircleMeters(lastLat, lastLng, lat, lng);
     }
     lastLat = lat;
     lastLng = lng;
@@ -117,16 +117,4 @@ GpxTrack? parseGpx(String xml) {
     samples: samples,
     route: route,
   );
-}
-
-double _haversine(double lat1, double lng1, double lat2, double lng2) {
-  const r = 6371000.0;
-  double rad(double d) => d * math.pi / 180;
-  final dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1);
-  final a =
-      math.pow(math.sin(dLat / 2), 2) +
-      math.cos(rad(lat1)) *
-          math.cos(rad(lat2)) *
-          math.pow(math.sin(dLng / 2), 2);
-  return 2 * r * math.asin(math.sqrt(a));
 }

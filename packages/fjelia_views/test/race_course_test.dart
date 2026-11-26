@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:fjelia_data/database.dart';
+import 'package:fjelia_core/models/workout_nutrition.dart';
 import 'package:fjelia_views/fjelia_views.dart';
 import 'package:test/test.dart';
 
@@ -21,6 +22,11 @@ String gpx() {
     );
   }
   return '$b</trkseg></trk></gpx>';
+}
+
+class _Texts implements NutritionTexts {
+  @override
+  dynamic noSuchMethod(Invocation i) => i.memberName.toString();
 }
 
 void main() {
@@ -87,7 +93,21 @@ void main() {
     // 5 km up at the own 8:00/km hill pace: about 40 minutes.
     expect(legs.first.seconds, closeTo(2400, 120));
     // Cut-off an hour after the start: about 20 minutes to spare.
-    expect(view.marginAt(legs.first)!.inMinutes, closeTo(20, 3));
+    expect(view.marginAt(view.plan!.legs.first)!.inMinutes, closeTo(20, 3));
+
+    // Three minutes at the aid station and fuel per leg at the Fuel
+    // planning's hourly rates.
+    await RaceCourseEdits(db)
+        .setSettings('g1', const RacePlanSettings(stopMinutes: 3));
+    view = (await loadRaceCourse(db, 'g1', now: now, texts: _Texts()))!;
+    final plan = view.plan!;
+    expect(plan.seconds, closeTo(view.prediction!.seconds + 180, 1));
+    final fuel = view.fuelFor(plan.legs.first)!;
+    expect(
+      fuel.carbs,
+      closeTo(view.fuel!.carbs * plan.legs.first.seconds / 3600, 0.1),
+    );
+    expect(fuel.fluid, greaterThan(0));
   });
 
   test('checkpoints come from the library\'s aid stations', () {

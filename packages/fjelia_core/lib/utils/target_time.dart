@@ -83,3 +83,9 @@ String formatPace(double secondsPerKm) {
   final total = secondsPerKm.round();
   return '${total ~/ 60}:${(total % 60).toString().padLeft(2, '0')}/km';
 }
+
+/// `5:40` for 5 h 40 min, rounded to the minute: race plans and legs.
+String formatHoursMinutes(double seconds) {
+  final m = (seconds / 60).round();
+  return '${m ~/ 60}:${(m % 60).toString().padLeft(2, '0')}';
+}
