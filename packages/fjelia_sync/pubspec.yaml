@@ -18,5 +18,8 @@ dependencies:
     path: ../fjelia_data
 
 dev_dependencies:
+  # The identity test vectors use its primitives directly; basic_utils
+  # 5.7 brings version 3.
+  pointycastle: ^3.9.1
   lints: ^6.0.0
   test: ^1.26.0

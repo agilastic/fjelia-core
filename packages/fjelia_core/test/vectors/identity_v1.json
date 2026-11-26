@@ -1,0 +1,111 @@
+{
+  "v": 1,
+  "note": "Test keys only. Made by tools/make_identity_vectors.py.",
+  "keys": {
+    "person": {
+      "private": "2e85c49a598152f3448e65d8ca7ce59ac661ec645b0b4ff1963a04b2a0a38166",
+      "spki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpAed4//NyGzArel70E2Jf0k1zrTxmdwDebfDZlw2MGaeF3fM8Xi71xEh4aoPeP5IPCyAtQpa6UuNy4f47OyuvQ==",
+      "id": "2a1ba3b9e9eebfb0d82bc192aed0a4cc"
+    },
+    "device_sign": {
+      "private": "6ba9e9d8fa2bb938d2967757d1a3c1d20064487814de4ebbb8ab77ecff5b628b",
+      "spki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgqvO/6xQ1Y5JhqNRVSOgcgNFt3wk/+wIQYUermv0YLEyWtMLCck7AdgKZN9DEgz6+/Bg/1V+9d3PM8dowbIGCw==",
+      "id": "2dc3b849b31cc30c5358a6f992a2dd2b"
+    },
+    "device_enc": {
+      "private": "57c1f484e58220e053bf3a4d199ad2eee0848d3039d5179fee284f6f5720dbc1",
+      "spki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVe4EzwkqZpnKFfD/R87W67guxB6G35nqiO3FiN9tt0WPk6t78mansB8hcQiZ33+VHCk6UpUaQh3l70bU3Jn29A==",
+      "id": "95f09d2b3b43c4fb70f4f8ec61fa445d"
+    },
+    "recipient_enc": {
+      "private": "42c062c6e555e63bbf8e2082663eae6260740e1c5a644099542d7254b5f50fa4",
+      "spki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfRQi1WSzPKhR8Wqf0kuL1TGk6qPKAY/RjVnmJhxlK9q4n+4/WRCfcgWS+v+sg7M+pBQLdrXES8GWz3Lp8zMzHg==",
+      "id": "c7d06cfb994aefa2f6a49f2e48e32ccd"
+    },
+    "ephemeral": {
+      "private": "7332945f1efe503ed22ce5aedf8d44678c15db4b7e16e249766b6a84f26d2430",
+      "spki": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1jI01tNKgZHXfb6QBTiC3dhTdWJe1/yQZcHfBoOD/TfzYJEJmz/r5eWcx30wR+fUspCK3ph2mBMLkkOYWhxmJw==",
+      "id": "d6d342244e8e1d334e28e0e98861b269"
+    }
+  },
+  "canonical_json": {
+    "input": {
+      "b": [
+        1,
+        {
+          "y": "ü",
+          "x": true
+        }
+      ],
+      "a": null,
+      "é": "line\nbreak",
+      "B": 7,
+      "😀": "astral",
+      "Ａ": "bmp"
+    },
+    "output": "{\"B\":7,\"a\":null,\"b\":[1,{\"x\":true,\"y\":\"ü\"}],\"é\":\"line\\nbreak\",\"😀\":\"astral\",\"Ａ\":\"bmp\"}"
+  },
+  "device_list": {
+    "list": {
+      "v": 1,
+      "person": "2a1ba3b9e9eebfb0d82bc192aed0a4cc",
+      "person_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpAed4//NyGzArel70E2Jf0k1zrTxmdwDebfDZlw2MGaeF3fM8Xi71xEh4aoPeP5IPCyAtQpa6UuNy4f47OyuvQ==",
+      "version": 1,
+      "issued": "2026-11-27T10:00:00Z",
+      "devices": [
+        {
+          "id": "2dc3b849b31cc30c5358a6f992a2dd2b",
+          "sign_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgqvO/6xQ1Y5JhqNRVSOgcgNFt3wk/+wIQYUermv0YLEyWtMLCck7AdgKZN9DEgz6+/Bg/1V+9d3PM8dowbIGCw==",
+          "enc_key": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVe4EzwkqZpnKFfD/R87W67guxB6G35nqiO3FiN9tt0WPk6t78mansB8hcQiZ33+VHCk6UpUaQh3l70bU3Jn29A==",
+          "name": "Test MacBook",
+          "platform": "macos",
+          "added": "2026-11-27T10:00:00Z"
+        }
+      ],
+      "removed": []
+    },
+    "canonical": "{\"devices\":[{\"added\":\"2026-11-27T10:00:00Z\",\"enc_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVe4EzwkqZpnKFfD/R87W67guxB6G35nqiO3FiN9tt0WPk6t78mansB8hcQiZ33+VHCk6UpUaQh3l70bU3Jn29A==\",\"id\":\"2dc3b849b31cc30c5358a6f992a2dd2b\",\"name\":\"Test MacBook\",\"platform\":\"macos\",\"sign_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEgqvO/6xQ1Y5JhqNRVSOgcgNFt3wk/+wIQYUermv0YLEyWtMLCck7AdgKZN9DEgz6+/Bg/1V+9d3PM8dowbIGCw==\"}],\"issued\":\"2026-11-27T10:00:00Z\",\"person\":\"2a1ba3b9e9eebfb0d82bc192aed0a4cc\",\"person_key\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpAed4//NyGzArel70E2Jf0k1zrTxmdwDebfDZlw2MGaeF3fM8Xi71xEh4aoPeP5IPCyAtQpa6UuNy4f47OyuvQ==\",\"removed\":[],\"v\":1,\"version\":1}",
+    "sig": "WlQB9nmugLbAa6zII9ex6sTYksSu9HbFSt5JPmfacyDIQwBSzn50e+PpYdmQ/TJtodS49hL7fxhVpMMOenNktQ=="
+  },
+  "key_wrap": {
+    "ephemeral": "ephemeral",
+    "recipient": "recipient_enc",
+    "recipient_device": "0123456789abcdef0123456789abcdef",
+    "sender_device": "2dc3b849b31cc30c5358a6f992a2dd2b",
+    "shared_secret": "257ff8bea338b1fa2c1e4b9d9e666d8f633b522a94af8f5f20a56c02dd052547",
+    "wrap_key": "241498e669a4ff5616bb2f5abd923e9b80701b70c0a7d03a635b6b92a1cab149",
+    "data_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "nonce": "6465666768696a6b6c6d6e6f",
+    "wrapped": "971eb4161f8e6278ae738c8607b32575917fea0ca6814ff3080a25e528355203f7368a653b1059c37c8b3c1be6569b60"
+  },
+  "body": {
+    "data_key": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "header": {
+      "v": 1,
+      "from": "2dc3b849b31cc30c5358a6f992a2dd2b",
+      "person": "2a1ba3b9e9eebfb0d82bc192aed0a4cc",
+      "seq": 1234,
+      "sent": "2026-11-27T10:00:00Z",
+      "nonce": "yMnKy8zNzs/Q0dLT"
+    },
+    "aad": "{\"from\":\"2dc3b849b31cc30c5358a6f992a2dd2b\",\"nonce\":\"yMnKy8zNzs/Q0dLT\",\"person\":\"2a1ba3b9e9eebfb0d82bc192aed0a4cc\",\"sent\":\"2026-11-27T10:00:00Z\",\"seq\":1234,\"v\":1}",
+    "nonce": "c8c9cacbcccdcecfd0d1d2d3",
+    "plaintext": "[{\"table\":\"race_goals\",\"op\":\"upsert\"}]",
+    "ciphertext": "4a0343afe7ae974556063dcc7f658e4b87e88dc47749840682d919dbf8e4db9aa9fe5e84ef42d419cf7847ab86d1d30d4257396ce60d"
+  },
+  "recovery": {
+    "code": "BESH-C0B9-F2A0-0WEG-JMCF-NQ6V-E1TR-AJS5",
+    "code_bytes": "5bb316016978940071d09518fadcdb7075854b25",
+    "person": "2a1ba3b9e9eebfb0d82bc192aed0a4cc",
+    "key": "6128422ed8abf9b766c7bd2985d070a49b3baab069f85f2838c8ea93356cee27",
+    "nonce": "32333435363738393a3b3c3d",
+    "person_key_pkcs8": "308187020100301306072a8648ce3d020106082a8648ce3d030107046d306b02010104202e85c49a598152f3448e65d8ca7ce59ac661ec645b0b4ff1963a04b2a0a38166a14403420004a4079de3ffcdc86cc0ade97bd04d897f4935ceb4f199dc0379b7c3665c3630669e1777ccf178bbd71121e1aa0f78fe483c2c80b50a5ae94b8dcb87f8ececaebd",
+    "blob": "c3263bc4e0977dcd53506a994e8b5883eeab7d73369117890cdddad87cd761fcc0f502b8f57b93b3b6d226386e672e409e48858bd2621baa94ea43b7312b89ec878e7d6c131cebe7ac8496874989c74e46185a0fde1e431ea468c01be7bd12a3dad214d27ffc24e4edb84de27c68aae421acbd6e20dfa43ee84a73d806c19a9ffcd039e66792ec09cdf311a2673cd7c05329b9547ad626c31907"
+  },
+  "six_digit_code": {
+    "token": "000102030405060708090a0b0c0d0e0f",
+    "device_a": "2dc3b849b31cc30c5358a6f992a2dd2b",
+    "device_b": "0123456789abcdef0123456789abcdef",
+    "code": "633067"
+  }
+}
