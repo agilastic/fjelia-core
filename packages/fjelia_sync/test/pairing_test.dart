@@ -341,6 +341,19 @@ void main() {
     );
   });
 
+  test('the phone hands its Pro pass to the computer', () async {
+    final withPass = SyncClient(
+      db: phoneDb,
+      identity: DeviceIdentity.generate(),
+      name: 'Phone',
+      secrets: MemoryStore(),
+      proPass: () async => 'a.b.c',
+    );
+    final desktop = await withPass.pair(await offer());
+    await withPass.sync(desktop);
+    expect((await desktopDb.syncPeers()).single.proPass, 'a.b.c');
+  });
+
   test('unpairing ends it on both devices', () async {
     final desktop = await phone.pair(await offer());
     await phone.unpair(desktop);

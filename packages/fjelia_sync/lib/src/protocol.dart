@@ -10,6 +10,7 @@ const cursorPath = '/v1/cursor';
 const changesPath = '/v1/changes';
 const wantedPath = '/v1/wanted';
 const extraPath = '/v1/extra';
+const proPath = '/v1/pro';
 
 const deviceHeader = 'x-fjelia-device';
 

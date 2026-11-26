@@ -65,6 +65,7 @@ const _addedColumns = [
   ('sync_peers', 'address', 'TEXT'),
   ('sync_peers', 'role', "TEXT NOT NULL DEFAULT 'self'"),
   ('sync_peers', 'last_synced_ms', 'INTEGER'),
+  ('sync_peers', 'pro_pass', 'TEXT'),
 ];
 
 /// Whose device a peer is: the athlete's own, or (on a coach's computer)
@@ -85,9 +86,14 @@ class SyncPeer {
     this.receivedSeq = 0,
     this.role = PeerRole.self,
     this.lastSynced,
+    this.proPass,
   });
 
   final PeerRole role;
+
+  /// The FjeliaPro pass the peer last handed over, unchecked: check it with
+  /// `verifyProPass` (fjelia_sync) before relying on it.
+  final String? proPass;
 
   /// When a sync with it last finished.
   final DateTime? lastSynced;
@@ -291,6 +297,12 @@ extension SyncStore on AppDatabase {
         deviceId,
       ]);
 
+  Future<void> setSyncPeerProPass(String deviceId, String? pass) =>
+      customStatement(
+        'UPDATE sync_peers SET pro_pass = ? WHERE device_id = ?',
+        [pass, deviceId],
+      );
+
   Future<void> setSyncPeerSynced(String deviceId, DateTime at) =>
       customStatement(
         'UPDATE sync_peers SET last_synced_ms = ? WHERE device_id = ?',
@@ -429,6 +441,7 @@ extension SyncStore on AppDatabase {
       null => null,
       final ms => DateTime.fromMillisecondsSinceEpoch(ms),
     },
+    proPass: r.readNullable<String>('pro_pass'),
   );
 
   /// Up to [limit] changes after [afterSeq] in [categories], each upsert

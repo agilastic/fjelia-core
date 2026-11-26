@@ -12,6 +12,7 @@ export 'package:fjelia_data/sync.dart' show PeerRole, SyncPeer, SyncStore;
 
 export 'src/client.dart';
 export 'src/identity.dart' show DeviceIdentity, SecretStore;
+export 'src/pro_pass.dart';
 export 'src/protocol.dart'
     show
         PeerLocator,

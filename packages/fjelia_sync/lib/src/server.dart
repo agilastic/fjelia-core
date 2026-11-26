@@ -29,6 +29,11 @@ class PeerUnpaired extends SyncEvent {
   const PeerUnpaired(super.peer);
 }
 
+/// The peer handed over its FjeliaPro pass.
+class ProPassReceived extends SyncEvent {
+  const ProPassReceived(super.peer);
+}
+
 /// The listening side: the desktop. It offers pairing codes, accepts the
 /// devices that present one, and takes in their changes.
 class SyncServer {
@@ -138,6 +143,16 @@ class SyncServer {
           );
         case ('POST', extraPath):
           await _receiveExtra(request, peer);
+        case ('POST', proPath):
+          // Kept as handed over; whoever relies on it checks it.
+          final body = await readJson(request, maxBytes: 8 * 1024) as Map;
+          final pass = body['pass'];
+          await db.setSyncPeerProPass(
+            peer.deviceId,
+            pass is String && pass.length < 4096 ? pass : null,
+          );
+          _events.add(ProPassReceived(peer));
+          await writeJson(request.response, 200, {'ok': true});
         case ('DELETE', pairPath):
           await db.removeSyncPeer(peer.deviceId);
           _events.add(PeerUnpaired(peer));

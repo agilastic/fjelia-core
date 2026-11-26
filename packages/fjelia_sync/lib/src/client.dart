@@ -23,7 +23,11 @@ class SyncClient {
     this.pageSize = 200,
     this.timeout = const Duration(seconds: 4),
     this.locator,
+    this.proPass,
   });
+
+  /// The FjeliaPro pass to hand to the computer, when this phone has one.
+  final Future<String?> Function()? proPass;
 
   final AppDatabase db;
   final DeviceIdentity identity;
@@ -176,6 +180,17 @@ class SyncClient {
         sent += page.length;
         onPage?.call(sent);
         onProgress?.call(sent, total);
+      }
+      // FjeliaPro for the computer. One that does not know the path yet
+      // (an older version) is not a failed sync.
+      if (await proPass?.call() case final pass?) {
+        try {
+          await _send(client, 'POST', base.replace(path: proPath), {
+            'pass': pass,
+          }, headers);
+        } on SyncRefused {
+          // Older computer.
+        }
       }
       // What the peer asked for that is only sent on request.
       final wanted = await _send(
