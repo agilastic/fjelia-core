@@ -353,6 +353,25 @@ extension SyncStore on AppDatabase {
         ];
       });
 
+  /// The keys of the records of [table] that [fromDevice] changed after
+  /// log position [afterSeq], such as the sessions a sync just brought.
+  Future<List<List<Object?>>> syncKeysFrom(
+    String table,
+    String fromDevice, {
+    required int afterSeq,
+  }) async => [
+    for (final r in await customSelect(
+      'SELECT record_key FROM sync_changes WHERE record_table = ? '
+      'AND origin_device = ? AND seq > ? ORDER BY seq',
+      variables: [
+        Variable(table),
+        Variable(fromDevice),
+        Variable.withInt(afterSeq),
+      ],
+    ).get())
+      List<Object?>.from(jsonDecode(r.read<String>('record_key')) as List),
+  ];
+
   Future<void> removeSyncPeer(String deviceId) =>
       customStatement('DELETE FROM sync_peers WHERE device_id = ?', [deviceId]);
 

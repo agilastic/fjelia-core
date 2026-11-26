@@ -245,6 +245,23 @@ void main() {
     expect(back.single.originDevice, isNull); // made on the desktop
   });
 
+  test('the records a device changed are known after a sync', () async {
+    await desktop.into(desktop.absences).insert(absence('injury'));
+    final before = await desktop.syncHeadSeq();
+    await phone.into(phone.absences).insert(absence('vacation'));
+    await sync();
+    final keys = await desktop.syncKeysFrom(
+      'absences',
+      'phone',
+      afterSeq: before,
+    );
+    expect(keys, hasLength(1));
+    expect(
+      await desktop.syncKeysFrom('absences', 'other', afterSeq: 0),
+      isEmpty,
+    );
+  });
+
   test('the newer edit wins on both sides', () async {
     await phone.into(phone.activityRecords).insert(activity('a1', 'Run'));
     await sync();
