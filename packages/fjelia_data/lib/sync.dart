@@ -57,23 +57,9 @@ const _schema = [
       'certificate_sha256 TEXT NOT NULL, paired_at_ms INTEGER NOT NULL, '
       'categories TEXT NOT NULL, peer_log_epoch TEXT, '
       'received_seq INTEGER NOT NULL DEFAULT 0)',
-  // A session another device deleted may still be on a watch platform: its
-  // ids go into the cleanup queue the platforms retry, before they are lost
-  // with the row. A deletion made here removes its entries itself.
-  'CREATE TRIGGER IF NOT EXISTS trg_synced_session_deleted_cleanup '
-      'AFTER DELETE ON training_sessions '
-      'WHEN (SELECT applying FROM sync_state) = 1 BEGIN '
-      'INSERT OR IGNORE INTO provider_cleanups '
-      '(provider_id, remote_id, schedule_id, created_at, attempts) '
-      "SELECT 'garmin', OLD.garmin_workout_id, OLD.garmin_alternative_id, "
-      "CAST(strftime('%s', 'now') AS INTEGER), 0 "
-      'WHERE OLD.garmin_workout_id IS NOT NULL; '
-      'INSERT OR IGNORE INTO provider_cleanups '
-      '(provider_id, remote_id, created_at, attempts) '
-      "SELECT provider_id, remote_id, CAST(strftime('%s', 'now') AS INTEGER), 0 "
-      'FROM workout_deliveries WHERE session_id = OLD.id '
-      "AND remote_id IS NOT NULL AND provider_id != 'garmin'; "
-      'DELETE FROM workout_deliveries WHERE session_id = OLD.id; END',
+  // Briefly a trigger did what _queueWatchCleanup does; it stood in the way
+  // of migrations that rebuild workout_deliveries.
+  'DROP TRIGGER IF EXISTS trg_synced_session_deleted_cleanup',
 ];
 
 /// Columns added to the log's tables after they first shipped.
@@ -652,6 +638,7 @@ extension SyncStore on AppDatabase {
   Future<void> _deleteRow(SyncTable t, List key) async {
     final where = await _where(t, key);
     if (where == null) return;
+    if (t.name == 'training_sessions') await _queueWatchCleanup(key);
     await customStatement('DELETE FROM "${t.name}" WHERE ${where.$1}', [
       ...where.$2,
     ]);
@@ -661,6 +648,33 @@ extension SyncStore on AppDatabase {
         [t.name, key.single],
       );
     }
+  }
+
+  /// A session another device deleted may still be on a watch platform:
+  /// its ids go into the cleanup queue the platforms retry, before they
+  /// are lost with the row. A deletion made on this device removes its
+  /// entries itself and never comes through here.
+  Future<void> _queueWatchCleanup(List key) async {
+    final id = key.single;
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    await customStatement(
+      'INSERT OR IGNORE INTO provider_cleanups '
+      '(provider_id, remote_id, schedule_id, created_at, attempts) '
+      "SELECT 'garmin', garmin_workout_id, garmin_alternative_id, ?, 0 "
+      'FROM training_sessions WHERE id = ? AND garmin_workout_id IS NOT NULL',
+      [now, id],
+    );
+    await customStatement(
+      'INSERT OR IGNORE INTO provider_cleanups '
+      '(provider_id, remote_id, created_at, attempts) '
+      'SELECT provider_id, remote_id, ?, 0 FROM workout_deliveries '
+      "WHERE session_id = ? AND remote_id IS NOT NULL AND provider_id != 'garmin'",
+      [now, id],
+    );
+    await customStatement(
+      'DELETE FROM workout_deliveries WHERE session_id = ?',
+      [id],
+    );
   }
 
   Future<void> _writeRow(
