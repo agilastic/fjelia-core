@@ -6,6 +6,7 @@ library;
 
 export 'package:fjelia_core/models/workout_draft.dart';
 export 'package:fjelia_core/services/lactate_test.dart';
+export 'package:fjelia_core/services/strength/strength_plan_edits.dart';
 
 export 'src/activities.dart';
 export 'src/analysis.dart';
@@ -19,5 +20,6 @@ export 'src/plan_edits.dart';
 export 'src/roster.dart';
 export 'src/season.dart';
 export 'src/sport_stats.dart';
+export 'src/strength_plans.dart';
 export 'src/today.dart';
 export 'src/training_load.dart';
