@@ -14,7 +14,7 @@ import 'analysis.dart' show bestOf, rideCurvesSince;
 import 'today.dart' show plannedSessionStates;
 
 export 'package:fjelia_core/services/activity_metrics.dart'
-    show AerobicEfficiency, CriticalPower, DetectedInterval;
+    show AerobicEfficiency, CriticalPower, DetectedInterval, fitCriticalPower;
 
 // --- One activity ----------------------------------------------------------
 
