@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import '../models/plan_views.dart';
 import 'activity_metrics.dart';
-import 'activity_series.dart';
+import 'sample_series.dart';
 import 'training_load.dart';
 
 /// The pure part of the context for chatting about one activity: the
@@ -240,7 +240,7 @@ abstract final class ActivityCoachContext {
           ? '${(1000 / mps / 60).floor()}:${((1000 / mps) % 60).round().toString().padLeft(2, '0')}/km'
           : '${_dec(mps * 3.6)}km/h';
       // Heart rate against output, warm-up left out: activity_metrics.
-      final drift = aerobicEfficiency(ActivitySeries.fromMetrics(raw))
+      final drift = aerobicEfficiency(SampleSeries.fromMetrics(raw))
           ?.decouplingPercent;
       return '[Halves:First:${move(a1.speed)},HR${_int(a1.hr)};'
           'Second:${move(a2.speed)},HR${_int(a2.hr)}'

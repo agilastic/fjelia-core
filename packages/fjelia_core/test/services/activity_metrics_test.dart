@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:fjelia_core/services/activity_metrics.dart';
-import 'package:fjelia_core/services/activity_series.dart';
+import 'package:fjelia_core/services/sample_series.dart';
 import 'package:test/test.dart';
 
 List<double> repeat(double v, int n) => List.filled(n, v);
@@ -16,13 +16,13 @@ void main() {
       {'t': t0 + 70000, 'w': 220, 'hr': 126},
       {'t': t0 + 71000, 'w': 220},
     ]);
-    final s = ActivitySeries.fromMetrics(json);
+    final s = SampleSeries.fromMetrics(json);
     expect(s.power.take(6), [200, 200, 200, 200, 200, 210]);
     // Across the pause power counts as zero, heart rate as missing.
     expect(s.power[30], 0);
     expect(s.heartRate[30].isNaN, isTrue);
     expect(s.heartRate.length, 70);
-    expect(ActivitySeries.fromMetrics('not json').length, 0);
+    expect(SampleSeries.fromMetrics('not json').length, 0);
   });
 
   test('normalized power of a steady ride is its power', () {
@@ -34,7 +34,7 @@ void main() {
   });
 
   test('efficiency factor and decoupling of a steady ride', () {
-    final s = ActivitySeries.of(
+    final s = SampleSeries.of(
       power: repeat(200, 3600),
       heartRate: [...repeat(140, 2100), ...repeat(150, 1500)],
     );
@@ -46,7 +46,7 @@ void main() {
       closeTo((200 / 140 - 200 / 150) / (200 / 140) * 100, 0.01),
     );
     // A run by speed: stops do not count.
-    final run = ActivitySeries.of(
+    final run = SampleSeries.of(
       speed: [for (var i = 0; i < 1800; i++) i % 300 == 0 ? 0.0 : 3.0],
       heartRate: repeat(150, 1800),
     );
@@ -56,7 +56,7 @@ void main() {
     expect(r.decouplingPercent, closeTo(0, .001));
     expect(
       aerobicEfficiency(
-        ActivitySeries.of(power: repeat(200, 600), heartRate: repeat(140, 600)),
+        SampleSeries.of(power: repeat(200, 600), heartRate: repeat(140, 600)),
       ),
       isNull,
     );

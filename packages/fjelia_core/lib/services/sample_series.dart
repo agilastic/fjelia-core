@@ -11,8 +11,8 @@ import '../models/heart_rate.dart';
 /// Values per second from the start of the recording. A value is held
 /// between samples for up to [maxHold] seconds; across a longer gap (the
 /// recording paused) power counts as zero and the others as missing (NaN).
-class ActivitySeries {
-  ActivitySeries._(this.power, this.heartRate, this.speed, this.distance);
+class SampleSeries {
+  SampleSeries._(this.power, this.heartRate, this.speed, this.distance);
 
   static const maxHold = 10;
 
@@ -39,8 +39,8 @@ class ActivitySeries {
 
   /// From an activity's stored samples (`metrics_json`: `t`, `w`, `hr`,
   /// `spd`, `d`); empty for anything unreadable. At most six hours.
-  factory ActivitySeries.fromMetrics(String? metricsJson) {
-    final empty = ActivitySeries._(const [], const [], const [], const []);
+  factory SampleSeries.fromMetrics(String? metricsJson) {
+    final empty = SampleSeries._(const [], const [], const [], const []);
     if (metricsJson == null || metricsJson.isEmpty) return empty;
     final Object? decoded;
     try {
@@ -84,7 +84,7 @@ class ActivitySeries {
       return out;
     }
 
-    return ActivitySeries._(
+    return SampleSeries._(
       channel('w', zeroInGaps: true, max: 3000),
       channel('hr', zeroInGaps: false, max: 260),
       channel('spd', zeroInGaps: false, max: 40),
@@ -93,7 +93,7 @@ class ActivitySeries {
   }
 
   /// A series made directly, for tests and imported files.
-  ActivitySeries.of({
+  SampleSeries.of({
     this.power = const [],
     this.heartRate = const [],
     this.speed = const [],

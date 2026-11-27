@@ -5,7 +5,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'activity_series.dart';
+import 'sample_series.dart';
 
 // --- Efficiency factor and aerobic decoupling ----------------------------
 
@@ -31,7 +31,7 @@ class AerobicEfficiency {
 /// Efficiency of [s]: by power when it has power, else by moving speed.
 /// Null for less than 20 minutes or too little heart rate. The first ten
 /// minutes (the warm-up) do not count when the activity is long enough.
-AerobicEfficiency? aerobicEfficiency(ActivitySeries s) {
+AerobicEfficiency? aerobicEfficiency(SampleSeries s) {
   if (!s.hasHeartRate || s.heartRate.length < 20 * 60) return null;
   final byPower = s.hasPower;
   if (!byPower && !s.hasSpeed) return null;
