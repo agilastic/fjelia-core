@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import '../models/heart_rate.dart';
+import 'activity_series.dart';
 
 /// The distances with running records.
 const runEffortDistances = [
@@ -122,27 +123,8 @@ Map<int, double> meanMaxPower(
   String metricsJson, [
   List<int> durations = powerCurveDurations,
 ]) {
-  final samples = _samples(metricsJson);
-  if (samples == null) return const {};
-  final timed = <(DateTime, double)>[];
-  for (final s in samples) {
-    final at = heartRateTimestamp(s['t']);
-    final w = (s['w'] as num?)?.toDouble();
-    if (at != null && w != null && w.isFinite && w >= 0 && w < 3000) {
-      timed.add((at, w));
-    }
-  }
-  if (timed.length < 2) return const {};
-  // Power per second.
-  final perSecond = <double>[];
-  for (var i = 0; i < timed.length - 1; i++) {
-    final gap = timed[i + 1].$1.difference(timed[i].$1).inSeconds;
-    if (gap <= 0) continue;
-    final held = gap <= 10 ? timed[i].$2 : 0.0;
-    for (var s = 0; s < math.min(gap, 6 * 3600); s++) {
-      perSecond.add(s == 0 ? timed[i].$2 : held);
-    }
-  }
+  final perSecond = ActivitySeries.fromMetrics(metricsJson).power;
+  if (perSecond.isEmpty) return const {};
   final prefix = List<double>.filled(perSecond.length + 1, 0);
   for (var i = 0; i < perSecond.length; i++) {
     prefix[i + 1] = prefix[i] + perSecond[i];

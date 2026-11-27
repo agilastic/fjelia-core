@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import '../models/plan_views.dart';
+import 'activity_metrics.dart';
+import 'activity_series.dart';
 import 'training_load.dart';
 
 /// The pure part of the context for chatting about one activity: the
@@ -197,7 +199,7 @@ abstract final class ActivityCoachContext {
   }
 
   /// First half against second half of the recording: pace (or speed) and
-  /// heart rate, and the heart-rate drift relative to speed (decoupling).
+  /// heart rate, and the aerobic decoupling (output per beat lost).
   static String? _halvesLine(ActivityView a) {
     final raw = a.metricsJson;
     if (raw == null || a.durationSeconds < 20 * 60) return null;
@@ -237,12 +239,12 @@ abstract final class ActivityCoachContext {
           : pace
           ? '${(1000 / mps / 60).floor()}:${((1000 / mps) % 60).round().toString().padLeft(2, '0')}/km'
           : '${_dec(mps * 3.6)}km/h';
-      final drift = a1.speed != null && a2.speed != null
-          ? ((a2.hr! / a2.speed!) / (a1.hr! / a1.speed!) - 1) * 100
-          : null;
+      // Heart rate against output, warm-up left out: activity_metrics.
+      final drift = aerobicEfficiency(ActivitySeries.fromMetrics(raw))
+          ?.decouplingPercent;
       return '[Halves:First:${move(a1.speed)},HR${_int(a1.hr)};'
           'Second:${move(a2.speed)},HR${_int(a2.hr)}'
-          '${drift == null ? '' : ',HRDrift:${drift >= 0 ? '+' : ''}${_dec(drift)}%'}]';
+          '${drift == null ? '' : ',Decoupling:${drift >= 0 ? '+' : ''}${_dec(drift)}%'}]';
     } catch (_) {
       return null;
     }
