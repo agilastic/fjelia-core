@@ -127,6 +127,17 @@ class PersonIdentity {
     await _saveList(store);
   }
 
+  /// A new recovery code (9), shown to the person once, with its blob and
+  /// the id the relay keeps the blob under.
+  ({String code, String lookup, Map<String, String> blob}) newRecovery() {
+    final code = recoveryCode(randomBytes(20));
+    return (
+      code: code,
+      lookup: recoveryLookup(code)!,
+      blob: recoveryBlob(code),
+    );
+  }
+
   /// The person key encrypted under [code] (9): goes with every backup,
   /// and is useless without the code.
   Map<String, String> recoveryBlob(String code) {
@@ -226,4 +237,17 @@ String scalarOfPkcs8(List<int> der) {
     throw const FormatException('not a P-256 PKCS#8 key');
   }
   return hex.substring(_pkcs8Head.length, _pkcs8Head.length + 64);
+}
+
+/// Where the relay keeps the blob of [code]: derived from the code alone,
+/// so a person who has nothing but the code finds it. Null for a code that
+/// is not one.
+String? recoveryLookup(String code) {
+  final bytes = recoveryBytes(code);
+  if (bytes == null) return null;
+  return hkdf(
+    bytes,
+    'fjelia',
+    'fjelia recovery lookup v1',
+  ).take(16).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 }

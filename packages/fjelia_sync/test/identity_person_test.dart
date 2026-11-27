@@ -82,4 +82,26 @@ void main() {
       expect(DeviceList.verified(me.signedList)!.removed, [back.deviceId]);
     },
   );
+
+  test('a recovery code finds its blob by itself, and opens it', () async {
+    final me = (await PersonIdentity.create(
+      Memory(),
+      deviceName: 'Mac',
+      platform: 'macos',
+    )).identity;
+    final r = me.newRecovery();
+    expect(recoveryLookup(r.code.toLowerCase().replaceAll('-', ' ')), r.lookup);
+    expect(r.lookup, hasLength(32));
+    expect(r.blob['blob'], isNot(contains(me.person.scalarHex)));
+    final back = await PersonIdentity.restore(
+      Memory(),
+      blob: r.blob,
+      code: r.code,
+      deviceName: 'New phone',
+      platform: 'ios',
+      lastKnown: me.list,
+    );
+    expect(back!.personId, me.personId);
+    expect(me.newRecovery().lookup, isNot(r.lookup));
+  });
 }

@@ -6,6 +6,7 @@ import 'package:fjelia_data/messages.dart';
 import 'package:fjelia_sync/src/identity/device_list.dart';
 import 'package:fjelia_sync/src/identity/message_relay.dart';
 import 'package:fjelia_sync/src/identity/person.dart';
+import 'package:fjelia_sync/src/identity/recovery.dart';
 import 'package:fjelia_sync/src/identity/relay_client.dart';
 import 'package:fjelia_views/fjelia_views.dart';
 import 'package:test/test.dart';
@@ -19,6 +20,7 @@ class FakeRelay {
   final queues = <String, List<(int, Map<String, dynamic>)>>{};
   List<(int, Map<String, dynamic>)> queue(String? d) => queues[d] ?? const [];
   final seen = <String>[];
+  final recoveries = <String, Map<String, dynamic>>{};
   var _next = 1;
 
   Future<(int, Object?)> call(
@@ -62,6 +64,15 @@ class FakeRelay {
       case ('POST', '/v1/relay/envelopes/ack'):
         queues[device]?.removeWhere((x) => x.$1 <= (b!['up_to'] as int));
         return (204, null);
+    }
+    if (method == 'POST' && url.path == '/v1/relay/recovery') {
+      if (b!['replaces'] case final String old) recoveries.remove(old);
+      recoveries[b['lookup'] as String] = b['blob'] as Map<String, dynamic>;
+      return (204, null);
+    }
+    if (method == 'GET' && url.path.startsWith('/v1/relay/recovery/')) {
+      final r = recoveries[url.pathSegments.last];
+      return r == null ? (404, null) : (200, {'blob': r});
     }
     if (method == 'GET' && url.path.startsWith('/v1/relay/lists/')) {
       final l = lists[url.pathSegments.last];
@@ -208,6 +219,69 @@ void main() {
       expect(await ana.db.outbox(), isEmpty);
       await coach.relay.run();
       expect(await coach.texts(dm), ['Hello?']);
+    },
+  );
+
+  test(
+    'a lost phone comes back with the code and keeps its threads going',
+    () async {
+      final relay = FakeRelay();
+      final coach = await Person.make('Kim', relay);
+      final ana = await Person.make('Ana', relay);
+      await ana.knows(coach, PersonRole.coach);
+      await coach.knows(ana, PersonRole.athlete);
+      final client = RelayClient(
+        Uri.parse('https://relay.test'),
+        transport: relay.call,
+      );
+      final store = Memory();
+      final first = await makeRecoveryCode(ana.me, client, store);
+      final code = await makeRecoveryCode(ana.me, client, store);
+      Future<RestoreProblem?> problem(String c) async => (await restoreWithCode(
+        c,
+        relay: client,
+        store: Memory(),
+        deviceName: 'x',
+        platform: 'ios',
+      )).problem;
+      // The first code no longer works.
+      expect(await problem(first), RestoreProblem.unknownCode);
+      expect(await problem('nonsense'), RestoreProblem.notACode);
+      final back = await restoreWithCode(
+        code,
+        relay: client,
+        store: Memory(),
+        deviceName: 'New iPhone',
+        platform: 'ios',
+      );
+      final newPhone = back.identity!;
+      expect(newPhone.personId, ana.me.personId);
+      expect(newPhone.list.devices.map((d) => d.name), [
+        'Ana device',
+        'New iPhone',
+      ]);
+      // The coach's next message reaches the new phone too.
+      final dm = await startDirect(coach.db, ana.as(PersonRole.athlete));
+      await sendText(coach.db, dm, 'Welcome back');
+      await coach.relay.run();
+      final db = AppDatabase(NativeDatabase.memory());
+      await db.installMessages();
+      await db.savePerson(
+        MessagePerson(
+          person: newPhone.personId,
+          name: 'Ana',
+          role: PersonRole.self,
+        ),
+      );
+      await db.savePerson(coach.as(PersonRole.coach));
+      await MessageRelay(db, newPhone, client, Memory()).run();
+      expect(
+        [
+          for (final e in await openThread(db, dm))
+            if (e.event.type == EventType.text) e.event.text,
+        ],
+        ['Welcome back'],
+      );
     },
   );
 

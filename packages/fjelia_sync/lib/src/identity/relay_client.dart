@@ -88,6 +88,30 @@ class RelayClient {
     _expires = s['expires'] as int;
   }
 
+  /// Keeps [blob] under [lookup]; [replaces] is the previous code's, which
+  /// stops working.
+  Future<void> keepRecovery(
+    String lookup,
+    Map<String, String> blob, {
+    String? replaces,
+  }) => _call(
+    'POST',
+    '/v1/relay/recovery',
+    body: {'lookup': lookup, 'blob': blob, 'replaces': ?replaces},
+    signedIn: true,
+  );
+
+  /// The blob kept under [lookup], or null.
+  Future<Map<String, dynamic>?> recovery(String lookup) async {
+    try {
+      return (await _call('GET', '/v1/relay/recovery/$lookup') as Map)['blob']
+          as Map<String, dynamic>;
+    } on RelayError catch (e) {
+      if (e.status == 404) return null;
+      rethrow;
+    }
+  }
+
   Future<void> send(Map<String, Object> envelope) =>
       _call('POST', '/v1/relay/envelopes', body: envelope, signedIn: true);
 
