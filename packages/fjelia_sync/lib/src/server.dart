@@ -8,6 +8,7 @@ import 'package:fjelia_data/database.dart';
 import 'package:fjelia_data/sync.dart';
 
 import 'identity.dart';
+import 'identity/introduce.dart';
 import 'protocol.dart';
 
 /// Something a paired device did.
@@ -45,7 +46,12 @@ class SyncServer {
     this.offerLifetime = const Duration(minutes: 5),
     this.databaseOf,
     this.wanted,
+    this.person,
   });
+
+  /// This device's person, for meeting the phones nearby; without it the
+  /// computer takes no part in messages.
+  final PersonSide? person;
 
   /// Content sent only on request that this device wants from [peer], by
   /// kind: `ecg` lists ECG recording ids whose waveforms to send. By
@@ -153,6 +159,13 @@ class SyncServer {
           );
           _events.add(ProPassReceived(peer));
           await writeJson(request.response, 200, {'ok': true});
+        case ('POST', personPath) when person != null:
+          final body = await readJson(request, maxBytes: 64 * 1024) as Map;
+          await writeJson(
+            request.response,
+            200,
+            await person!.answer(peer, body),
+          );
         case ('DELETE', pairPath):
           await db.removeSyncPeer(peer.deviceId);
           _events.add(PeerUnpaired(peer));

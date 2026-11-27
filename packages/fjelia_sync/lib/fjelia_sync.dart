@@ -20,4 +20,8 @@ export 'src/protocol.dart'
         bonjourDeviceKey,
         bonjourServiceType,
         defaultSyncPort;
+export 'src/identity/introduce.dart' show PersonSide, personPath;
+export 'src/identity/message_relay.dart';
+export 'src/identity/person.dart' show PersonIdentity;
+export 'src/identity/relay_client.dart' show RelayClient, RelayError;
 export 'src/server.dart';

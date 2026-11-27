@@ -10,6 +10,7 @@ import 'package:fjelia_data/database.dart';
 import 'package:fjelia_data/sync.dart';
 
 import 'identity.dart';
+import 'identity/introduce.dart';
 import 'protocol.dart';
 
 /// The connecting side: the phone. It pairs by a scanned code and sends its
@@ -24,7 +25,11 @@ class SyncClient {
     this.timeout = const Duration(seconds: 4),
     this.locator,
     this.proPass,
+    this.person,
   });
+
+  /// This device's person, introduced to the computer at each sync.
+  final PersonSide? person;
 
   /// The FjeliaPro pass to hand to the computer, when this phone has one.
   final Future<String?> Function()? proPass;
@@ -188,6 +193,29 @@ class SyncClient {
           await _send(client, 'POST', base.replace(path: proPath), {
             'pass': pass,
           }, headers);
+        } on SyncRefused {
+          // Older computer.
+        }
+      }
+      // Meeting the computer's person; an older computer does not know how.
+      if (person?.hello() case final hello?) {
+        try {
+          final answer = await _send(
+            client,
+            'POST',
+            base.replace(path: personPath),
+            hello,
+            headers,
+          );
+          if (await person!.met(answer) case final join?) {
+            await _send(
+              client,
+              'POST',
+              base.replace(path: personPath),
+              join,
+              headers,
+            );
+          }
         } on SyncRefused {
           // Older computer.
         }

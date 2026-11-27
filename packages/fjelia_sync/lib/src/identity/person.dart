@@ -81,6 +81,32 @@ class PersonIdentity {
   Future<void> _saveList(SecretStore store) =>
       store.write(_list, jsonEncode(list.signed(person)));
 
+  Future<void> saveList(SecretStore store) => _saveList(store);
+
+  /// This device joins another person (13): their person key and a list of
+  /// theirs with this device on it. Returns the new identity, or null when
+  /// the list is not that person's or lacks this device.
+  Future<PersonIdentity?> adopt(
+    SecretStore store, {
+    required String personKey,
+    required Map<String, dynamic> signed,
+  }) async {
+    final KeyPair key;
+    try {
+      key = KeyPair.fromScalar(personKey);
+    } on FormatException {
+      return null;
+    }
+    final next = DeviceList.verified(signed, person: key.id);
+    final mine = next?.device(deviceId);
+    if (next == null || mine == null) return null;
+    if (idOf(mine.encKey) != deviceEnc.id) return null;
+    final adopted = PersonIdentity._(key, deviceSign, deviceEnc, next);
+    await store.write(_person, key.scalarHex);
+    await adopted._saveList(store);
+    return adopted;
+  }
+
   /// The signed list, as devices and the relay receive it.
   Map<String, Object> get signedList => list.signed(person);
 

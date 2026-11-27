@@ -114,6 +114,9 @@ extension MessageStore on AppDatabase {
     ],
   );
 
+  Future<void> forgetPerson(String person) =>
+      customStatement('DELETE FROM msg_people WHERE person = ?', [person]);
+
   Future<List<MessagePerson>> people({PersonRole? role}) async => [
     for (final r in await customSelect(
       'SELECT * FROM msg_people${role == null ? '' : ' WHERE role = ?'} '
