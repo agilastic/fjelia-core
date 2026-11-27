@@ -27,6 +27,7 @@ export 'src/ecg.dart';
 export 'src/fuel.dart';
 export 'src/gear.dart';
 export 'src/health.dart';
+export 'src/insights.dart';
 export 'src/lab_tests.dart';
 export 'src/messages.dart';
 export 'src/plan_edits.dart';

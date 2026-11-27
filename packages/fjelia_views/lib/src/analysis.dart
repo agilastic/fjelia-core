@@ -221,7 +221,12 @@ Future<AnalysisView> loadAnalysis(
 /// change, so each is read once per run.
 final _curveCache = <String, Map<int, double>>{};
 
-Future<PowerCurve> _powerCurve(AppDatabase db, DateTime today) async {
+/// Each ride since [from] with its power curve (watts by seconds), worked
+/// out once per activity in a background isolate.
+Future<List<(String, DateTime, Map<int, double>)>> rideCurvesSince(
+  AppDatabase db,
+  DateTime from,
+) async {
   final a = db.activityRecords;
   final rides = [
     for (final r
@@ -229,7 +234,7 @@ Future<PowerCurve> _powerCurve(AppDatabase db, DateTime today) async {
               ..addColumns([a.activityId, a.type, a.startDate])
               ..where(
                 a.avgWatts.isBiggerThanValue(0) &
-                    a.startDate.isBiggerOrEqualValue(DateTime(today.year - 1)),
+                    a.startDate.isBiggerOrEqualValue(from),
               ))
             .get())
       if (activityKind(r.read(a.type)!) == ActivityKind.cycling)
@@ -255,14 +260,32 @@ Future<PowerCurve> _powerCurve(AppDatabase db, DateTime today) async {
       _curveCache[id] = curve;
     }
   }
-  final thisYear = <int, double>{}, lastYear = <int, double>{};
-  for (final (id, start) in rides) {
-    final target = start.year == today.year ? thisYear : lastYear;
-    for (final MapEntry(key: d, value: w) in (_curveCache[id] ?? {}).entries) {
-      if (w > (target[d] ?? 0)) target[d] = w;
+  return [for (final (id, start) in rides) (id, start, _curveCache[id] ?? {})];
+}
+
+/// The best of [curves] at each duration.
+Map<int, double> bestOf(Iterable<Map<int, double>> curves) {
+  final best = <int, double>{};
+  for (final curve in curves) {
+    for (final MapEntry(key: d, value: w) in curve.entries) {
+      if (w > (best[d] ?? 0)) best[d] = w;
     }
   }
-  return PowerCurve(thisYear: thisYear, lastYear: lastYear);
+  return best;
+}
+
+Future<PowerCurve> _powerCurve(AppDatabase db, DateTime today) async {
+  final rides = await rideCurvesSince(db, DateTime(today.year - 1));
+  return PowerCurve(
+    thisYear: bestOf([
+      for (final (_, start, c) in rides)
+        if (start.year == today.year) c,
+    ]),
+    lastYear: bestOf([
+      for (final (_, start, c) in rides)
+        if (start.year != today.year) c,
+    ]),
+  );
 }
 
 Future<List<ZoneWeek>> _zoneWeeks(
