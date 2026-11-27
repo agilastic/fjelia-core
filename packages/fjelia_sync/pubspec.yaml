@@ -21,5 +21,8 @@ dependencies:
     path: ../fjelia_data
 
 dev_dependencies:
+  # The end-to-end messaging test writes as the apps do.
+  fjelia_views:
+    path: ../fjelia_views
   lints: ^6.0.0
   test: ^1.26.0
