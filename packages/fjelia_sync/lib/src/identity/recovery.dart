@@ -30,7 +30,7 @@ Future<String> makeRecoveryCode(
 }
 
 /// Why coming back with a code did not work.
-enum RestoreProblem { notACode, unknownCode, wrongCode }
+enum RestoreProblem { notACode, unknownCode, wrongCode, unreachable }
 
 /// This device becomes the person whose code [code] is: their key from the
 /// relay, opened with the code, and their device list with this device
