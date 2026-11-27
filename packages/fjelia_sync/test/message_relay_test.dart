@@ -191,6 +191,27 @@ void main() {
   );
 
   test(
+    'a message waits while the coach\'s devices are not known yet',
+    () async {
+      final relay = FakeRelay();
+      final coach = await Person.make('Kim', relay);
+      final ana = await Person.make('Ana', relay);
+      await ana.knows(coach, PersonRole.coach);
+      await ana.relay.run(); // only Ana's list is on the relay
+      final dm = await startDirect(ana.db, coach.as(PersonRole.coach));
+      await sendText(ana.db, dm, 'Hello?');
+      await ana.relay.run();
+      expect(await ana.db.outbox(), hasLength(2)); // still waiting
+      await coach.knows(ana, PersonRole.athlete);
+      await coach.relay.run(); // the coach's list arrives
+      await ana.relay.run();
+      expect(await ana.db.outbox(), isEmpty);
+      await coach.relay.run();
+      expect(await coach.texts(dm), ['Hello?']);
+    },
+  );
+
+  test(
     'an athlete cannot make a group or add others to the coach\'s',
     () async {
       final relay = FakeRelay();

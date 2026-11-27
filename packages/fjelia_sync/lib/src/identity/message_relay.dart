@@ -88,14 +88,22 @@ class MessageRelay {
         me.personId,
       };
       final recipients = <Recipient>[];
+      var unknown = false;
       for (final person in people) {
         final list = await devicesOf(person);
-        for (final d in list?.devices ?? const <ListedDevice>[]) {
+        if (list == null) {
+          unknown = true; // not on the relay yet: try again next time
+          continue;
+        }
+        for (final d in list.devices) {
           if (d.id != me.deviceId) {
             recipients.add((device: d.id, encKey: d.encKey));
           }
         }
       }
+      // Until every member's devices are known the events wait; nothing is
+      // marked sent that someone in the thread could not read.
+      if (unknown) continue;
       if (recipients.isNotEmpty) {
         await relay.send(
           sealEnvelope(
