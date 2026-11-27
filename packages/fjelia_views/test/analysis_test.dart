@@ -113,6 +113,32 @@ void main() {
     expect(week.easyShare, closeTo(2 / 3, 0.001));
     expect(view.easyShare, closeTo(2 / 3, 0.001));
     expect(view.thresholds.single.ftpWatts, 265);
+
+    // All of it: from the first day with load.
+    final all = await loadAnalysis(db, range: AnalysisRange.all, now: now);
+    expect(all.from, all.form.first.date);
+    expect(all.form.first.date.isBefore(DateTime(2024, 6, 2)), isTrue);
+    // A past period of the athlete's choosing: its days, no forecast.
+    final q1 = await loadAnalysis(
+      db,
+      from: DateTime(2025, 1, 1),
+      to: DateTime(2025, 3, 31),
+      now: now,
+    );
+    expect(q1.custom, isTrue);
+    expect(q1.form, hasLength(90));
+    expect(q1.form.first.date, DateTime(2025, 1, 1));
+    expect(q1.form.last.date, DateTime(2025, 3, 31));
+    expect(q1.forecast, isEmpty);
+    // A period past today ends today, and goes on into the plan.
+    final on = await loadAnalysis(
+      db,
+      from: DateTime(2026, 11, 1),
+      to: DateTime(2027, 1, 1),
+      now: now,
+    );
+    expect(on.to, DateTime(2026, 11, 25));
+    expect(on.forecast, hasLength(AnalysisView.forecastDays));
     expect(view.records[StatsSport.ride]!.allTime.count, 3);
   });
 }

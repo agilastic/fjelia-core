@@ -14,12 +14,17 @@ import 'sport_stats.dart';
 import 'today.dart' show plannedSessionStates;
 import 'training_load.dart';
 
-/// How far back Analysis looks.
+/// How far back Analysis looks. [all] starts at the first day with training
+/// load; a period of the athlete's own choosing is given to [loadAnalysis]
+/// as from and to instead.
 enum AnalysisRange {
   sixWeeks(42),
   threeMonths(91),
   sixMonths(182),
-  year(365);
+  year(365),
+  twoYears(730),
+  fiveYears(1826),
+  all(0);
 
   const AnalysisRange(this.days);
   final int days;
@@ -74,6 +79,9 @@ class AnalysisView {
   const AnalysisView({
     required this.range,
     required this.today,
+    required this.from,
+    required this.to,
+    this.custom = false,
     required this.form,
     required this.forecast,
     required this.load,
@@ -85,6 +93,13 @@ class AnalysisView {
 
   final AnalysisRange range;
   final DateTime today;
+
+  /// The days shown, both included. [to] is [today] unless a past period was
+  /// chosen; only then is there no forecast.
+  final DateTime from, to;
+
+  /// A period the athlete chose rather than one of the [AnalysisRange]s.
+  final bool custom;
 
   /// Fitness, fatigue and form over [range], through today; each point's
   /// load is the day's.
@@ -119,18 +134,30 @@ class AnalysisView {
   }
 }
 
+/// Analysis over [range], or over the athlete's own period from [from] to
+/// [to] (both days included; [to] at most today). Fitness, fatigue and form
+/// are always worked out from the whole history, so any period shows them
+/// right from its first day.
 Future<AnalysisView> loadAnalysis(
   AppDatabase db, {
   AnalysisRange range = AnalysisRange.sixMonths,
+  DateTime? from,
+  DateTime? to,
   bool mondayFirst = true,
   DateTime? now,
 }) async {
   final today = dayOf(now ?? DateTime.now());
   final history = await readTrainingLoadHistory(db, now: today);
-  final from = DateTime(today.year, today.month, today.day - range.days + 1);
+  final custom = from != null;
+  final last = to == null || dayOf(to).isAfter(today) ? today : dayOf(to);
+  final first = custom
+      ? dayOf(from)
+      : range == AnalysisRange.all
+      ? (history.points.isEmpty ? today : dayOf(history.points.first.date))
+      : DateTime(today.year, today.month, today.day - range.days + 1);
   final form = [
     for (final p in history.points)
-      if (!p.date.isBefore(from)) p,
+      if (!p.date.isBefore(first) && !p.date.isAfter(last)) p,
   ];
 
   // The plan ahead, for the forecast.
@@ -153,7 +180,8 @@ Future<AnalysisView> loadAnalysis(
     final d = dayOf(x.sessionDate.toLocal());
     planned[d] = (planned[d] ?? 0) + x.plannedTrimp;
   }
-  final forecast = history.points.isEmpty
+  // Only a period that ends today goes on into the plan ahead.
+  final forecast = history.points.isEmpty || last != today
       ? const <FormPoint>[]
       : projectTrainingForm(
           history.points.last,
@@ -164,6 +192,9 @@ Future<AnalysisView> loadAnalysis(
   return AnalysisView(
     range: range,
     today: today,
+    from: first,
+    to: last,
+    custom: custom,
     form: form,
     forecast: forecast,
     load: TrainingLoadSummary.of(history),
