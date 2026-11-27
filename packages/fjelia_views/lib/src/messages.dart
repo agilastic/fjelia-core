@@ -5,7 +5,14 @@ import 'package:fjelia_data/database.dart';
 import 'package:fjelia_data/messages.dart';
 
 export 'package:fjelia_core/services/messaging/thread_event.dart'
-    show EventType, ThreadKind, ThreadMember, ThreadState, maxTextLength;
+    show
+        EventType,
+        ThreadEvent,
+        ThreadKind,
+        ThreadMember,
+        ThreadState,
+        maxTextLength,
+        maxTitleLength;
 export 'package:fjelia_data/messages.dart'
     show MessagePerson, PersonRole, StoredEvent;
 
