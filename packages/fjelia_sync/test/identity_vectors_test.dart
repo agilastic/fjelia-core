@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:basic_utils/basic_utils.dart';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:pointycastle/export.dart';
+import 'package:fjelia_sync/src/identity/crypto.dart'
+    show canonicalJson, recoveryBytes, recoveryCode;
 import 'package:test/test.dart';
 
 /// docs/identity-and-sync-security.md, checked against vectors made by an
@@ -161,8 +163,10 @@ void main() {
 
   test('the recovery code opens the recovery blob', () {
     final r = v['recovery'] as Map;
-    final bytes = crockford(r['code'] as String);
+    final bytes = recoveryBytes(r['code'] as String)!;
     expect(toHex(bytes), r['code_bytes']);
+    // And written back the same way.
+    expect(recoveryCode(bytes), r['code']);
     final key = hkdf(bytes, r['person'] as String, 'fjelia recovery v1');
     expect(toHex(key), r['key']);
     expect(
@@ -183,26 +187,4 @@ void main() {
     final n = ByteData.sublistView(Uint8List.fromList(mac), 0, 4).getUint32(0);
     expect((n % 1000000).toString().padLeft(6, '0'), s['code']);
   });
-}
-
-/// Section 10: keys sorted by UTF-16 code units, no white space.
-String canonicalJson(Object? o) => switch (o) {
-  final Map m =>
-    '{${([...m.keys.cast<String>()]..sort()).map((k) => '${jsonEncode(k)}:${canonicalJson(m[k])}').join(',')}}',
-  final List l => '[${l.map(canonicalJson).join(',')}]',
-  _ => jsonEncode(o),
-};
-
-/// Crockford base32 without the dashes.
-List<int> crockford(String code) {
-  const alphabet = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-  final bits = StringBuffer();
-  for (final ch in code.replaceAll('-', '').split('')) {
-    bits.write(alphabet.indexOf(ch).toRadixString(2).padLeft(5, '0'));
-  }
-  final s = bits.toString();
-  return [
-    for (var i = 0; i + 8 <= s.length; i += 8)
-      int.parse(s.substring(i, i + 8), radix: 2),
-  ];
 }
