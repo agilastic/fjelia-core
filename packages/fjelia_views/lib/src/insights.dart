@@ -40,8 +40,8 @@ class ActivityInsights {
   /// The athlete's model from the 90 days before the activity.
   final CriticalPower? criticalPower;
 
-  /// (minutes, kJ left) at most [maxPoints] points; empty without power or
-  /// a model.
+  /// (seconds, kJ left), at most [maxPoints] points; empty without power
+  /// or a model.
   final List<(double, double)> wPrimeBalance;
 
   /// The least W′ left, J: how deep the hardest part went.
@@ -89,7 +89,7 @@ ActivityInsights _insights(String? json, CriticalPower? model) {
     lowest = bal.fold<double>(model.wPrime, math.min);
     final step = math.max(1, (bal.length / ActivityInsights.maxPoints).ceil());
     balance = [
-      for (var i = 0; i < bal.length; i += step) (i / 60, bal[i] / 1000),
+      for (var i = 0; i < bal.length; i += step) (i.toDouble(), bal[i] / 1000),
     ];
   }
   return ActivityInsights(
